@@ -1,19 +1,29 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import ModeToggleButton from './components/ModeToggleButton.jsx'
-import Section1 from './components/Section1.jsx'
+import { useState } from 'react';
+import ModeToggleButton from './components/ModeToggleButton';
+import PortfolioSection from './components/PortfolioSection';
+import sections from './data/sections';
 
 function App() {
   const [mode, setMode] = useState('DNA');
 
   return (
     <div>
+      {/* Button now rendered outside scroll container */}
       <ModeToggleButton mode={mode} setMode={setMode} />
-      <Section1 mode={mode} />
+
+      <div
+        style={{
+          height: '100vh',
+          overflowY: 'scroll',
+          scrollSnapType: 'y mandatory',
+        }}
+      >
+        {sections.map(section => (
+          <PortfolioSection key={section.id} section={section} mode={mode} />
+        ))}
+      </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
