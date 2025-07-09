@@ -4,7 +4,8 @@ import PortfolioSection from './components/PortfolioSection'
 import PlanetScene from './components/three/PlanetScene'
 import sections from './data/sections'
 
-let scrollTimeout = null // <-- scroll lock (global)
+let scrollTimeout = null
+let lastScrollY = 0
 
 const App = () => {
   const [mode, setMode] = useState('Planet')
@@ -18,13 +19,16 @@ const App = () => {
   const handleScroll = (event) => {
     if (isTransitioning || scrollTimeout) return
 
-    const delta = Math.sign(event.deltaY)
-    const nextSection = currentSection + delta
+    const delta = event.deltaY
+
+    if (Math.abs(delta) < 80) return
+
+    const direction = Math.sign(delta)
+    const nextSection = currentSection + direction
 
     if (nextSection >= 0 && nextSection < sections.length) {
       setIsTransitioning(true)
-
-      setPlanetSpeed(0.10)
+      setPlanetSpeed(0.05)
 
       setTimeout(() => {
         setPlanetId((prev) => (prev % 5) + 1)
