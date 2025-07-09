@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { TextureLoader } from 'three'
 import { useLoader } from '@react-three/fiber'
 import { Stars, OrbitControls } from '@react-three/drei'
@@ -23,8 +23,6 @@ const RotatingPlanet = () => {
 }
 
 const PlanetScene = () => {
-  const { size } = useThree()
-
   return (
     <Canvas
       style={{
@@ -42,7 +40,7 @@ const PlanetScene = () => {
       <directionalLight position={[5, 5, 5]} intensity={1} />
       <Stars radius={100} depth={50} count={5000} factor={4} fade />
       <RotatingPlanet />
-      {/* <OrbitControls enableZoom={false} /> // optional for debugging */}
+      {/* <OrbitControls enableZoom={false} /> */}
     </Canvas>
   )
 }
