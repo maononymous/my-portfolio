@@ -4,6 +4,8 @@ import PortfolioSection from './components/PortfolioSection'
 import PlanetScene from './components/three/PlanetScene'
 import sections from './data/sections'
 
+let scrollTimeout = null // <-- scroll lock (global)
+
 const App = () => {
   const [mode, setMode] = useState('Planet')
   const [currentSection, setCurrentSection] = useState(0)
@@ -14,7 +16,7 @@ const App = () => {
   const sectionRefs = useRef(sections.map(() => React.createRef()))
 
   const handleScroll = (event) => {
-    if (isTransitioning) return
+    if (isTransitioning || scrollTimeout) return
 
     const delta = Math.sign(event.deltaY)
     const nextSection = currentSection + delta
@@ -22,7 +24,7 @@ const App = () => {
     if (nextSection >= 0 && nextSection < sections.length) {
       setIsTransitioning(true)
 
-      setPlanetSpeed(0.05)
+      setPlanetSpeed(0.10)
 
       setTimeout(() => {
         setPlanetId((prev) => (prev % 5) + 1)
@@ -33,6 +35,10 @@ const App = () => {
         setIsTransitioning(false)
         setPlanetSpeed(0.002)
       }, 1000)
+
+      scrollTimeout = setTimeout(() => {
+        scrollTimeout = null
+      }, 1200)
     }
   }
 
