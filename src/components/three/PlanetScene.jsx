@@ -1,39 +1,49 @@
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Stars } from '@react-three/drei'
-import { Suspense } from 'react'
+import React, { useRef } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { TextureLoader } from 'three'
+import { useLoader } from '@react-three/fiber'
+import { Stars, OrbitControls } from '@react-three/drei'
 
-const Planet = () => {
+const RotatingPlanet = () => {
+  const meshRef = useRef()
+  const texture = useLoader(TextureLoader, '/textures/2k_mars.jpg')
+
+  useFrame(() => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y += 0.002
+    }
+  })
+
   return (
-    <mesh rotation={[0.2, 0.6, 0]}>
-      <sphereGeometry args={[1.5, 64, 64]} />
-      <meshStandardMaterial color="#4fc3f7" metalness={0.5} roughness={0.1} />
+    <mesh ref={meshRef} position={[0, 0, 0]}>
+      <sphereGeometry args={[2, 64, 64]} />
+      <meshStandardMaterial map={texture} />
     </mesh>
   )
 }
 
 const PlanetScene = () => {
+  const { size } = useThree()
+
   return (
-    <div
+    <Canvas
       style={{
         position: 'fixed',
         top: 0,
         left: 0,
-        zIndex: -1,
-        width: '100vw',
+        zIndex: 0,
+        width: '100%',
         height: '100vh',
         pointerEvents: 'none',
       }}
+      camera={{ position: [0, 0, 6], fov: 45 }}
     >
-      <Canvas camera={{ position: [0, 0, 5] }}>
-        <Suspense fallback={null}>
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[5, 5, 5]} />
-          <Stars radius={100} depth={50} count={5000} factor={4} />
-          <Planet />
-          <OrbitControls enableZoom={false} enablePan={false} />
-        </Suspense>
-      </Canvas>
-    </div>
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[5, 5, 5]} intensity={1} />
+      <Stars radius={100} depth={50} count={5000} factor={4} fade />
+      <RotatingPlanet />
+      {/* <OrbitControls enableZoom={false} /> // optional for debugging */}
+    </Canvas>
   )
 }
 
