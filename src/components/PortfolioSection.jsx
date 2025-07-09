@@ -1,26 +1,42 @@
-import React from 'react';
+import React from 'react'
+import { motion } from 'framer-motion'
 
 const PortfolioSection = ({ section, mode }) => {
   return (
-    <section id={section.id}
+    <motion.section
+      id={section.id}
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      viewport={{ once: true }}
       style={{
+        position: 'relative',
         height: '100vh',
-        padding: '0',
+        width: '100vw',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         scrollSnapAlign: 'start',
-        background: mode === 'DNA' ? '#fefbe9' : '#0b1d3a',
+        background: mode === 'DNA' ? '#fefbe9' : 'transparent',
         color: mode === 'DNA' ? '#222' : '#eee',
+        zIndex: 1,
+        padding: 0,
+        margin: 0,
         transition: 'background 0.3s ease, color 0.3s ease',
-        }}
+      }}
     >
-      <div style={{
-        width: '100%',
-        maxWidth: '800px',
-        padding: '3rem',
-        margin: '0 auto',
-        textAlign: 'left',
+      <motion.div
+        key={mode}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        style={{
+          maxWidth: '800px',
+          padding: '2rem',
+          textAlign: 'left',
+          backgroundColor: mode === 'DNA' ? 'rgba(255,255,255,0.85)' : 'transparent',
+          borderRadius: '10px',
+          zIndex: 2,
         }}
       >
         <h2 style={{ marginBottom: '0.5rem' }}>{section.title}</h2>
@@ -28,9 +44,9 @@ const PortfolioSection = ({ section, mode }) => {
         <p style={{ lineHeight: '1.6' }}>
           {mode === 'DNA' ? section.dnaContent : section.planetContent}
         </p>
-      </div>
-    </section>
-  );
-};
+      </motion.div>
+    </motion.section>
+  )
+}
 
-export default PortfolioSection;
+export default PortfolioSection
