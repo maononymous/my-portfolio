@@ -15,10 +15,10 @@ const App = () => {
     if (isThrottled) return
 
     const delta = e.deltaY
-    if (delta > 40 && currentSection < sections.length - 1) {
+    if (delta > 20 && currentSection < sections.length - 1) {
       setCurrentSection((prev) => prev + 1)
       throttleScroll()
-    } else if (delta < -40 && currentSection > 0) {
+    } else if (delta < -20 && currentSection > 0) {
       setCurrentSection((prev) => prev - 1)
       throttleScroll()
     }
