@@ -1,25 +1,24 @@
-import React, { useRef, useEffect } from 'react'
-import { Canvas, useFrame, useThree, useLoader } from '@react-three/fiber'
+import React, { useRef, useEffect, useState } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { TextureLoader } from 'three'
+import { useLoader } from '@react-three/fiber'
 import { Stars } from '@react-three/drei'
 
-const RotatingPlanet = ({ triggerSpin }) => {
-  const meshRef = useRef()
-  const spinSpeed = useRef(0.002)
-  const timeoutRef = useRef(null)
-  const texture = useLoader(TextureLoader, '/textures/2k_mars.jpg')
+const textureMap = {
+  1: '/textures/2k_mars.jpg',
+  2: '/textures/2k_jupiter.jpg',
+  3: '/textures/2k_neptune.jpg',
+  4: '/textures/2k_makemake_fictional.jpg',
+  5: '/textures/2k_ceres_fictional.jpg',
+}
 
-  useEffect(() => {
-    spinSpeed.current = 0.2
-    clearTimeout(timeoutRef.current)
-    timeoutRef.current = setTimeout(() => {
-      spinSpeed.current = 0.002
-    }, 600)
-  }, [triggerSpin])
+const RotatingPlanet = ({ planetId, speed }) => {
+  const meshRef = useRef()
+  const texture = useLoader(TextureLoader, textureMap[planetId] || textureMap[1])
 
   useFrame(() => {
     if (meshRef.current) {
-      meshRef.current.rotation.y += spinSpeed.current
+      meshRef.current.rotation.y += speed
     }
   })
 
@@ -31,7 +30,7 @@ const RotatingPlanet = ({ triggerSpin }) => {
   )
 }
 
-const PlanetScene = ({ triggerSpin }) => {
+const PlanetScene = ({ planetId, speed = 0.002 }) => {
   return (
     <Canvas
       style={{
@@ -48,7 +47,7 @@ const PlanetScene = ({ triggerSpin }) => {
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 5, 5]} intensity={1} />
       <Stars radius={100} depth={50} count={5000} factor={4} fade />
-      <RotatingPlanet triggerSpin={triggerSpin} />
+      <RotatingPlanet planetId={planetId} speed={speed} />
     </Canvas>
   )
 }
