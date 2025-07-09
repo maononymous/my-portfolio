@@ -1,9 +1,10 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 
-const PortfolioSection = ({ section, mode }) => {
+const PortfolioSection = React.forwardRef(({ section, mode }, ref) => {
   return (
     <motion.section
+      ref={ref}
       id={section.id}
       initial={{ opacity: 0, y: 50 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -47,6 +48,6 @@ const PortfolioSection = ({ section, mode }) => {
       </motion.div>
     </motion.section>
   )
-}
+})
 
 export default PortfolioSection
