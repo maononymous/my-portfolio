@@ -1,33 +1,41 @@
-import React, { useState, useRef, useEffect } from 'react'
-import sections from './data/sections'
+import React, { useState, useEffect, useCallback } from 'react'
+import sections from './sections'
 import PortfolioSection from './components/PortfolioSection'
-import PlanetScene from './components/three/PlanetScene'
+import PlanetScene from './components/PlanetScene'
 import ModeToggleButton from './components/ModeToggleButton'
 import { AnimatePresence } from 'framer-motion'
 
 const App = () => {
   const [mode, setMode] = useState('Planet')
   const [currentSection, setCurrentSection] = useState(0)
-  const sectionRefs = useRef([])
+  const [isThrottled, setIsThrottled] = useState(false)
 
-  
-  useEffect(() => {
-    const handleScroll = () => {
-      const tops = sectionRefs.current.map(
-        (ref) => ref?.getBoundingClientRect().top || 0
-      )
-      const nearestIndex = tops.reduce((closestIdx, top, idx) => {
-        return Math.abs(top) < Math.abs(tops[closestIdx]) ? idx : closestIdx
-      }, 0)
-      setCurrentSection(nearestIndex)
+  // Scroll detection logic
+  const handleScroll = useCallback((e) => {
+    if (isThrottled) return
+
+    const delta = e.deltaY
+    if (delta > 0 && currentSection < sections.length - 1) {
+      setCurrentSection((prev) => prev + 1)
+      throttleScroll()
+    } else if (delta < 0 && currentSection > 0) {
+      setCurrentSection((prev) => prev - 1)
+      throttleScroll()
     }
+  }, [currentSection, isThrottled])
 
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  const throttleScroll = () => {
+    setIsThrottled(true)
+    setTimeout(() => setIsThrottled(false), 1000) // prevent too fast navigation
+  }
+
+  useEffect(() => {
+    window.addEventListener('wheel', handleScroll, { passive: true })
+    return () => window.removeEventListener('wheel', handleScroll)
+  }, [handleScroll])
 
   return (
-    <div style={{ scrollSnapType: 'y mandatory', overflowY: 'scroll', height: '100vh' }}>
+    <div style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
       <ModeToggleButton mode={mode} setMode={setMode} />
       {mode === 'Planet' && <PlanetScene triggerSpin={currentSection} />}
       <AnimatePresence mode="wait">
