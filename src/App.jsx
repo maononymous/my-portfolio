@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import sections from './sections'
+import sections from './data/sections'
 import PortfolioSection from './components/PortfolioSection'
-import PlanetScene from './components/PlanetScene'
+import PlanetScene from './components/three/PlanetScene'
 import ModeToggleButton from './components/ModeToggleButton'
 import { AnimatePresence } from 'framer-motion'
 
