@@ -1,16 +1,25 @@
-import React, { useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import React, { useRef, useEffect } from 'react'
+import { Canvas, useFrame, useThree, useLoader } from '@react-three/fiber'
 import { TextureLoader } from 'three'
-import { useLoader } from '@react-three/fiber'
-import { Stars, OrbitControls } from '@react-three/drei'
+import { Stars } from '@react-three/drei'
 
-const RotatingPlanet = () => {
+const RotatingPlanet = ({ triggerSpin }) => {
   const meshRef = useRef()
+  const spinSpeed = useRef(0.002)
+  const timeoutRef = useRef(null)
   const texture = useLoader(TextureLoader, '/textures/2k_mars.jpg')
+
+  useEffect(() => {
+    spinSpeed.current = 0.2
+    clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(() => {
+      spinSpeed.current = 0.002
+    }, 600)
+  }, [triggerSpin])
 
   useFrame(() => {
     if (meshRef.current) {
-      meshRef.current.rotation.y += 0.002
+      meshRef.current.rotation.y += spinSpeed.current
     }
   })
 
@@ -22,7 +31,7 @@ const RotatingPlanet = () => {
   )
 }
 
-const PlanetScene = () => {
+const PlanetScene = ({ triggerSpin }) => {
   return (
     <Canvas
       style={{
@@ -39,8 +48,7 @@ const PlanetScene = () => {
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 5, 5]} intensity={1} />
       <Stars radius={100} depth={50} count={5000} factor={4} fade />
-      <RotatingPlanet />
-      {/* <OrbitControls enableZoom={false} /> */}
+      <RotatingPlanet triggerSpin={triggerSpin} />
     </Canvas>
   )
 }

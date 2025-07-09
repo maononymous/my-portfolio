@@ -3,13 +3,14 @@ import sections from './data/sections'
 import PortfolioSection from './components/PortfolioSection'
 import PlanetScene from './components/three/PlanetScene'
 import ModeToggleButton from './components/ModeToggleButton'
+import { AnimatePresence } from 'framer-motion'
 
 const App = () => {
   const [mode, setMode] = useState('Planet')
   const [currentSection, setCurrentSection] = useState(0)
   const sectionRefs = useRef([])
 
-  // Detect scroll to track current section
+  
   useEffect(() => {
     const handleScroll = () => {
       const tops = sectionRefs.current.map(
@@ -29,14 +30,13 @@ const App = () => {
     <div style={{ scrollSnapType: 'y mandatory', overflowY: 'scroll', height: '100vh' }}>
       <ModeToggleButton mode={mode} setMode={setMode} />
       {mode === 'Planet' && <PlanetScene triggerSpin={currentSection} />}
-      {sections.map((section, index) => (
+      <AnimatePresence mode="wait">
         <PortfolioSection
-          key={section.id}
-          ref={(el) => (sectionRefs.current[index] = el)}
-          section={section}
+          key={currentSection}
+          section={sections[currentSection]}
           mode={mode}
         />
-      ))}
+      </AnimatePresence>
     </div>
   )
 }

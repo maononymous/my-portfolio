@@ -6,9 +6,10 @@ const PortfolioSection = React.forwardRef(({ section, mode }, ref) => {
     <motion.section
       ref={ref}
       id={section.id}
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -40 }}
+      transition={{ duration: 0.6, ease: 'easeInOut' }}
       viewport={{ once: true }}
       style={{
         position: 'relative',
