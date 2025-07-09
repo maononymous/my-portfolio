@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import sections from './sections'
+import sections from './data/sections'
 import PortfolioSection from './components/PortfolioSection'
 import PlanetScene from './components/PlanetScene'
 import ModeToggleButton from './components/ModeToggleButton'
