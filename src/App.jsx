@@ -8,7 +8,6 @@ function App() {
 
   return (
     <div>
-      {/* Button now rendered outside scroll container */}
       <ModeToggleButton mode={mode} setMode={setMode} />
 
       <div
