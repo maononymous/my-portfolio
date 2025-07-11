@@ -5,6 +5,8 @@ import ModeToggleButton from './components/ModeToggleButton'
 import CloudOverlay from './components/CloudOverlay'
 import sections from './data/sections'
 
+const SCROLL_THRESHOLD = 40
+
 const App = () => {
   const [mode, setMode] = useState('Planet')
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -16,7 +18,7 @@ const App = () => {
 
   useEffect(() => {
     const handleScroll = (e) => {
-      if (scrolling) return
+      if (scrolling || Math.abs(e.deltaY) < SCROLL_THRESHOLD) return
 
       const direction = e.deltaY > 0 ? 'down' : 'up'
       const nextIndex = direction === 'down' ? currentIndex + 1 : currentIndex - 1
