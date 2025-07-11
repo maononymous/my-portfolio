@@ -30,7 +30,7 @@ const App = () => {
       setTimeout(() => {
         setCurrentIndex(nextIndex)
         setPlanetId((prev) => (prev % 5) + 1)
-      }, 600)
+      }, 500)
 
       setTimeout(() => {
         setIsCloudVisible(false)
