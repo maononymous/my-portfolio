@@ -34,6 +34,7 @@ const PlanetScene = ({ planetId, speed = 0.002 }) => {
   return (
     <Canvas
       style={{
+        background: '#000000',
         position: 'fixed',
         top: 0,
         left: 0,
@@ -46,7 +47,7 @@ const PlanetScene = ({ planetId, speed = 0.002 }) => {
     >
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 5, 5]} intensity={1} />
-      <Stars radius={100} depth={50} count={5000} factor={4} fade />
+      <Stars key={planetId} radius={100} depth={50} count={6000} factor={5} saturation={0} fade speed={1}/>
       <RotatingPlanet planetId={planetId} speed={speed} />
     </Canvas>
   )

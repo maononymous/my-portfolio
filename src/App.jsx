@@ -14,38 +14,35 @@ const App = () => {
   const [planetId, setPlanetId] = useState(1)
   const [planetSpeed, setPlanetSpeed] = useState(0.002)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [isCloudVisible, setIsCloudVisible] = useState(false)
+  const [cloudDirection, setCloudDirection] = useState('down')
+
 
   const sectionRefs = useRef(sections.map(() => React.createRef()))
 
-  const handleScroll = (event) => {
-    if (isTransitioning || scrollTimeout) return
+  const handleScroll = (e) => {
+    if (scrolling) return
 
-    const delta = event.deltaY
+    const direction = e.deltaY > 0 ? 'down' : 'up'
+    const nextIndex = direction === 'down' ? currentIndex + 1 : currentIndex - 1
 
-    if (Math.abs(delta) < 20) return
+    if (nextIndex < 0 || nextIndex >= sections.length) return
 
-    const direction = Math.sign(delta)
-    const nextSection = currentSection + direction
+    setCloudDirection(direction)
+    setIsCloudVisible(true)
+    setScrolling(true)
 
-    if (nextSection >= 0 && nextSection < sections.length) {
-      setIsTransitioning(true)
-      setPlanetSpeed(0.05)
+    setTimeout(() => {
+      setCurrentIndex(nextIndex)
+      setPlanetId((prev) => (prev % 5) + 1)
+    }, 700)
 
-      setTimeout(() => {
-        setPlanetId((prev) => (prev % 5) + 1)
-      }, 300)
-
-      setTimeout(() => {
-        setCurrentSection(nextSection)
-        setIsTransitioning(false)
-        setPlanetSpeed(0.002)
-      }, 1000)
-
-      scrollTimeout = setTimeout(() => {
-        scrollTimeout = null
-      }, 1200)
-    }
+    setTimeout(() => {
+      setIsCloudVisible(false)
+      setScrolling(false)
+    }, 1400)
   }
+
 
   useEffect(() => {
     window.addEventListener('wheel', handleScroll, { passive: true })
@@ -56,7 +53,7 @@ const App = () => {
     <div style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
       <ModeToggleButton mode={mode} setMode={setMode} />
       {mode === 'Planet' && <PlanetScene planetId={planetId} speed={planetSpeed} />}
-      <CloudOverlay isVisible={isTransitioning} />
+      <CloudOverlay direction={cloudDirection} isVisible={isCloudVisible} />
       {sections.map((section, index) => (
         index === currentSection && (
           <PortfolioSection
