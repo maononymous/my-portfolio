@@ -11,7 +11,7 @@ const CloudOverlay = ({ direction, isVisible }) => {
             custom={direction}
             initial={{ y: direction === 'down' ? '100%' : '-100%', opacity: 0 }}
             animate={{ y: '0%', opacity: 1, transition: { duration: 0.6, ease: 'easeInOut' } }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 1 }}
             className="cloud-overlay"
             style={baseStyle}
           />
