@@ -33,12 +33,12 @@ const App = () => {
         setCurrentIndex(nextIndex)
         setPlanetId((prev) => (prev % 5) + 1)
         setIsCloudVisible('exit')
-      }, 200)
+      }, 300)
 
       setTimeout(() => {
         setIsCloudVisible(false)
         setScrolling(false)
-      }, 500)
+      }, 800)
     }
 
     window.addEventListener('wheel', handleScroll, { passive: true })
