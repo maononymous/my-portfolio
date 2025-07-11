@@ -1,64 +1,58 @@
-import React, { useState, useRef, useEffect } from 'react'
-import ModeToggleButton from './components/ModeToggleButton'
+import React, { useRef, useEffect, useState } from 'react'
 import PortfolioSection from './components/PortfolioSection'
 import PlanetScene from './components/three/PlanetScene'
+import ModeToggleButton from './components/ModeToggleButton'
 import CloudOverlay from './components/CloudOverlay'
 import sections from './data/sections'
 
-let scrollTimeout = null
-let lastScrollY = 0
-
 const App = () => {
   const [mode, setMode] = useState('Planet')
-  const [currentSection, setCurrentSection] = useState(0)
+  const [currentIndex, setCurrentIndex] = useState(0)
   const [planetId, setPlanetId] = useState(1)
-  const [planetSpeed, setPlanetSpeed] = useState(0.002)
-  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [scrolling, setScrolling] = useState(false)
   const [isCloudVisible, setIsCloudVisible] = useState(false)
   const [cloudDirection, setCloudDirection] = useState('down')
-
-
-  const sectionRefs = useRef(sections.map(() => React.createRef()))
-
-  const handleScroll = (e) => {
-    if (scrolling) return
-
-    const direction = e.deltaY > 0 ? 'down' : 'up'
-    const nextIndex = direction === 'down' ? currentIndex + 1 : currentIndex - 1
-
-    if (nextIndex < 0 || nextIndex >= sections.length) return
-
-    setCloudDirection(direction)
-    setIsCloudVisible(true)
-    setScrolling(true)
-
-    setTimeout(() => {
-      setCurrentIndex(nextIndex)
-      setPlanetId((prev) => (prev % 5) + 1)
-    }, 700)
-
-    setTimeout(() => {
-      setIsCloudVisible(false)
-      setScrolling(false)
-    }, 1400)
-  }
-
+  const sectionRefs = useRef([])
 
   useEffect(() => {
+    const handleScroll = (e) => {
+      if (scrolling) return
+
+      const direction = e.deltaY > 0 ? 'down' : 'up'
+      const nextIndex = direction === 'down' ? currentIndex + 1 : currentIndex - 1
+
+      if (nextIndex < 0 || nextIndex >= sections.length) return
+
+      setCloudDirection(direction)
+      setIsCloudVisible(true)
+      setScrolling(true)
+
+      setTimeout(() => {
+        setCurrentIndex(nextIndex)
+        setPlanetId((prev) => (prev % 5) + 1)
+      }, 700)
+
+      setTimeout(() => {
+        setIsCloudVisible(false)
+        setScrolling(false)
+      }, 1400)
+    }
+
     window.addEventListener('wheel', handleScroll, { passive: true })
     return () => window.removeEventListener('wheel', handleScroll)
-  }, [currentSection, isTransitioning])
+  }, [currentIndex, scrolling])
 
   return (
-    <div style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
-      <ModeToggleButton mode={mode} setMode={setMode} />
-      {mode === 'Planet' && <PlanetScene planetId={planetId} speed={planetSpeed} />}
+    <div>
+      <PlanetScene planetId={planetId} />
       <CloudOverlay direction={cloudDirection} isVisible={isCloudVisible} />
+      <ModeToggleButton mode={mode} setMode={setMode} />
+
       {sections.map((section, index) => (
-        index === currentSection && (
+        index === currentIndex && (
           <PortfolioSection
-            key={section.id}
-            ref={sectionRefs.current[index]}
+            key={`${section.id}-${mode}`}
+            ref={(el) => (sectionRefs.current[index] = el)}
             section={section}
             mode={mode}
           />
