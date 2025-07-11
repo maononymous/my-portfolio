@@ -13,7 +13,7 @@ const CloudOverlay = ({ direction, isVisible }) => {
       transition: { duration: 0.6, ease: 'easeInOut' },
     },
     exit: (dir) => ({
-      y: dir === 'down' ? '100%' : '-100%',
+      y: dir === 'down' ? '-100%' : '100%',
       opacity: 0,
       transition: { duration: 0.6, ease: 'easeInOut' },
     }),
