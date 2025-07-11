@@ -35,7 +35,7 @@ const App = () => {
       setTimeout(() => {
         setIsCloudVisible(false)
         setScrolling(false)
-      }, 600)
+      }, 1000)
     }
 
     window.addEventListener('wheel', handleScroll, { passive: true })
