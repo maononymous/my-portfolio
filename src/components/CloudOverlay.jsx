@@ -16,11 +16,11 @@ const enterVariants = {
 const exitVariants = {
   hidden: {
     y: '0%',
-    opacity: 1,
+    opacity: 0,
   },
   exit: (dir) => ({
     y: dir === 'down' ? '-100%' : '100%',
-    opacity: 0,
+    opacity: 1,
     transition: { duration: 0.5, ease: 'easeInOut' },
   }),
 }
@@ -31,7 +31,6 @@ const CloudOverlay = ({ direction, isVisible }) => {
       <AnimatePresence mode="wait">
         {isVisible && (
           <>
-            {/* Entering Cloud */}
             <motion.div
               key={`cloud-enter-${direction}`}
               custom={direction}
@@ -43,7 +42,6 @@ const CloudOverlay = ({ direction, isVisible }) => {
               style={baseStyle}
             />
 
-            {/* Exiting Cloud */}
             <motion.div
               key={`cloud-exit-${direction}`}
               custom={direction}
