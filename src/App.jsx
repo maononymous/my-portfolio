@@ -24,12 +24,13 @@ const App = () => {
       if (nextIndex < 0 || nextIndex >= sections.length) return
 
       setCloudDirection(direction)
-      setIsCloudVisible(true)
       setScrolling(true)
+      setIsCloudVisible('entry')
 
       setTimeout(() => {
         setCurrentIndex(nextIndex)
         setPlanetId((prev) => (prev % 5) + 1)
+        setIsCloudVisible('exit')
       }, 500)
 
       setTimeout(() => {

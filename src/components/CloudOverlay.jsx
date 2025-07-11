@@ -1,58 +1,35 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const enterVariants = {
-  hidden: (dir) => ({
-    y: dir === 'down' ? '100%' : '-100%',
-    opacity: 0,
-  }),
-  visible: {
-    y: '0%',
-    opacity: 1,
-    transition: { duration: 0.5, ease: 'easeInOut' },
-  },
-}
-
-const exitVariants = {
-  hidden: {
-    y: '0%',
-    opacity: 0,
-  },
-  exit: (dir) => ({
-    y: dir === 'down' ? '-100%' : '100%',
-    opacity: 1,
-    transition: { duration: 0.3, ease: 'easeInOut' },
-  }),
-}
-
 const CloudOverlay = ({ direction, isVisible }) => {
   return (
     <>
       <AnimatePresence mode="wait">
-        {isVisible && (
-          <>
-            <motion.div
-              key={`cloud-enter-${direction}`}
-              custom={direction}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={enterVariants}
-              className="cloud-overlay"
-              style={baseStyle}
-            />
+        {isVisible === 'entry' && (
+          <motion.div
+            key={`cloud-enter-${direction}`}
+            custom={direction}
+            initial={{ y: direction === 'down' ? '100%' : '-100%', opacity: 0 }}
+            animate={{ y: '0%', opacity: 1, transition: { duration: 0.6, ease: 'easeInOut' } }}
+            exit={{ opacity: 0 }}
+            className="cloud-overlay"
+            style={baseStyle}
+          />
+        )}
 
-            <motion.div
-              key={`cloud-exit-${direction}`}
-              custom={direction}
-              initial="hidden"
-              animate="hidden"
-              exit="exit"
-              variants={exitVariants}
-              className="cloud-overlay"
-              style={{ ...baseStyle, zIndex: 9 }}
-            />
-          </>
+        {isVisible === 'exit' && (
+          <motion.div
+            key={`cloud-exit-${direction}`}
+            custom={direction}
+            initial={{ y: '0%', opacity: 1 }}
+            animate={{
+              y: direction === 'down' ? '-100%' : '100%',
+              opacity: 0,
+              transition: { duration: 0.6, ease: 'easeInOut' },
+            }}
+            className="cloud-overlay"
+            style={{ ...baseStyle, zIndex: 9 }}
+          />
         )}
       </AnimatePresence>
     </>
