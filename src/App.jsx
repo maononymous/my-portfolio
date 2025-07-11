@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import ModeToggleButton from './components/ModeToggleButton'
 import PortfolioSection from './components/PortfolioSection'
 import PlanetScene from './components/three/PlanetScene'
+import CloudOverlay from './components/CloudOverlay'
 import sections from './data/sections'
 
 let scrollTimeout = null
@@ -21,7 +22,7 @@ const App = () => {
 
     const delta = event.deltaY
 
-    if (Math.abs(delta) < 80) return
+    if (Math.abs(delta) < 20) return
 
     const direction = Math.sign(delta)
     const nextSection = currentSection + direction
@@ -55,6 +56,7 @@ const App = () => {
     <div style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
       <ModeToggleButton mode={mode} setMode={setMode} />
       {mode === 'Planet' && <PlanetScene planetId={planetId} speed={planetSpeed} />}
+      <CloudOverlay isVisible={isTransitioning} />
       {sections.map((section, index) => (
         index === currentSection && (
           <PortfolioSection
