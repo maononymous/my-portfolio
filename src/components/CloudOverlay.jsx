@@ -25,7 +25,7 @@ const CloudOverlay = ({ direction, isVisible }) => {
             animate={{
               y: direction === 'down' ? '-100%' : '100%',
               opacity: 0,
-              transition: { duration: 0.11, ease: 'easeInOut' },
+              transition: { duration: 0.5, ease: 'easeInOut' },
             }}
             className="cloud-overlay"
             style={{ ...baseStyle, zIndex: 9 }}
