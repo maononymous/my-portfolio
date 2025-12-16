@@ -4,6 +4,7 @@ import PlanetScene from './components/three/PlanetScene'
 import ModeToggleButton from './components/ModeToggleButton'
 import CloudOverlay from './components/CloudOverlay'
 import sections from './data/sections'
+import ClickSpark from "./components/effects/ClickSpark";
 
 const SCROLL_THRESHOLD = 40
 
@@ -46,22 +47,29 @@ const App = () => {
   }, [currentIndex, scrolling])
 
   return (
-    <div>
-      <PlanetScene planetId={planetId} />
-      <CloudOverlay direction={cloudDirection} isVisible={isCloudVisible} />
-      <ModeToggleButton mode={mode} setMode={setMode} />
+    <ClickSpark
+      sparkColor="#ffffff"
+      sparkCount={10}
+      sparkRadius={18}
+      duration={420}
+    >
+      <div>
+        <PlanetScene planetId={planetId} />
+        <CloudOverlay direction={cloudDirection} isVisible={isCloudVisible} />
+        <ModeToggleButton mode={mode} setMode={setMode} />
 
-      {sections.map((section, index) => (
-        index === currentIndex && (
-          <PortfolioSection
-            key={`${section.id}-${mode}`}
-            ref={(el) => (sectionRefs.current[index] = el)}
-            section={section}
-            mode={mode}
-          />
-        )
-      ))}
-    </div>
+        {sections.map((section, index) => (
+          index === currentIndex && (
+            <PortfolioSection
+              key={`${section.id}-${mode}`}
+              ref={(el) => (sectionRefs.current[index] = el)}
+              section={section}
+              mode={mode}
+            />
+          )
+        ))}
+      </div>
+    </ClickSpark>
   )
 }
 
