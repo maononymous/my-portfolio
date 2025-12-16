@@ -2,9 +2,10 @@ import React, { useRef, useEffect, useState } from 'react'
 import PortfolioSection from './components/PortfolioSection'
 import PlanetScene from './components/three/PlanetScene'
 import ModeToggleButton from './components/ModeToggleButton'
-import CloudOverlay from './components/CloudOverlay'
+import ParticleOverlay from './components/ParticleOverlay'
 import sections from './data/sections'
-import ClickSpark from "./components/effects/ClickSpark";
+import ClickSpark from './components/effects/ClickSpark'
+import Galaxy from './components/backgrounds/Galaxy'
 
 const SCROLL_THRESHOLD = 40
 
@@ -47,15 +48,14 @@ const App = () => {
   }, [currentIndex, scrolling])
 
   return (
-    <ClickSpark
-      sparkColor="#ffffff"
-      sparkCount={10}
-      sparkRadius={18}
-      duration={420}
-    >
+    <ClickSpark sparkColor="#ffffff" sparkCount={10} sparkRadius={18} duration={420}>
+      <Galaxy />
       <div>
         <PlanetScene planetId={planetId} />
-        <CloudOverlay direction={cloudDirection} isVisible={isCloudVisible} />
+
+        {/* Particle transition overlay (replaces cloud PNG overlay) */}
+        <ParticleOverlay direction={cloudDirection} isVisible={isCloudVisible} />
+
         <ModeToggleButton mode={mode} setMode={setMode} />
 
         {sections.map((section, index) => (

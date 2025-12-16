@@ -1,8 +1,7 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { TextureLoader } from 'three'
 import { useLoader } from '@react-three/fiber'
-import { Stars } from '@react-three/drei'
 
 const textureMap = {
   1: '/textures/2k_mars.jpg',
@@ -17,9 +16,7 @@ const RotatingPlanet = ({ planetId, speed }) => {
   const texture = useLoader(TextureLoader, textureMap[planetId] || textureMap[1])
 
   useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += speed
-    }
+    if (meshRef.current) meshRef.current.rotation.y += speed
   })
 
   return (
@@ -34,7 +31,6 @@ const PlanetScene = ({ planetId, speed = 0.002 }) => {
   return (
     <Canvas
       style={{
-        background: '#000000',
         position: 'fixed',
         top: 0,
         left: 0,
@@ -47,7 +43,6 @@ const PlanetScene = ({ planetId, speed = 0.002 }) => {
     >
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 5, 5]} intensity={1} />
-      <Stars key={planetId} radius={100} depth={50} count={6000} factor={5} saturation={0} fade speed={1}/>
       <RotatingPlanet planetId={planetId} speed={speed} />
     </Canvas>
   )

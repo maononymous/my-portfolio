@@ -76,3 +76,8 @@ button:focus-visible {
   background: rgba(255,255,255,0.2);
   border-radius: 10px;
 }
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: #000;
+}

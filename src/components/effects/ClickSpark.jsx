@@ -3,11 +3,11 @@ import React, { useEffect, useMemo, useRef } from "react";
 export default function ClickSpark({
   children,
   sparkColor = "#ffffff",
-  sparkSize = 10,     // visual size multiplier
-  sparkRadius = 15,   // how far sparks spread
-  sparkCount = 8,
-  duration = 400,     // ms
-  extraScale = 1,     // overall multiplier
+  sparkSize = 1,     // visual size multiplier
+  sparkRadius = 500,   // how far sparks spread
+  sparkCount = 500,
+  duration = 100,     // ms
+  extraScale = 2,     // overall multiplier
   disabled = false,
 }) {
   const canvasRef = useRef(null);
