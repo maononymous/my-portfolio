@@ -11,7 +11,7 @@ export default function ParticleOverlay({ direction, isVisible }) {
           initial={{ y: direction === "down" ? "100%" : "-100%", opacity: 0 }}
           animate={{ y: "0%", opacity: "75%", transition: { duration: 1, ease: "easeInOut" } }}
           exit={{ opacity: "75%" }}
-          style={baseStyle}
+          style={baseStyle(direction)}
         >
           <Particles
             particleCount={2000}          // keep reasonable
@@ -36,7 +36,7 @@ export default function ParticleOverlay({ direction, isVisible }) {
             opacity: 0,
             transition: { duration: 1, ease: "easeInOut" },
           }}
-          style={baseStyle}
+          style={baseStyle(direction)}
         >
           <Particles
             particleCount={2000}          // keep reasonable
@@ -55,13 +55,25 @@ export default function ParticleOverlay({ direction, isVisible }) {
   );
 }
 
-const baseStyle = {
+const baseStyle = (direction) => ({
   position: "fixed",
   inset: 0,
   width: "100vw",
   height: "100vh",
   zIndex: 10,
   pointerEvents: "none",
-  background: "rgba(0,0,0,1)",
-  backdropFilter: "blur(200px)",
-};
+  background: "transparent",
+
+  // soften the whole overlay a bit
+  filter: "blur(1.5px)",
+
+  // IMPORTANT: feather edges so it doesn't look like a rectangle
+  WebkitMaskImage:
+    direction === "down"
+      ? "linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 22%, rgba(0,0,0,1) 78%, rgba(0,0,0,0) 100%)"
+      : "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 22%, rgba(0,0,0,1) 78%, rgba(0,0,0,0) 100%)",
+  maskImage:
+    direction === "down"
+      ? "linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 22%, rgba(0,0,0,1) 78%, rgba(0,0,0,0) 100%)"
+      : "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 22%, rgba(0,0,0,1) 78%, rgba(0,0,0,0) 100%)",
+});
