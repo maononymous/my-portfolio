@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react'
 import PortfolioSection from './components/PortfolioSection'
 import PlanetScene from './components/three/PlanetScene'
 import ModeToggleButton from './components/ModeToggleButton'
-import ParticleOverlay from './components/ParticleOverlay'
+import GalaxyOverlay from './components/GalaxyOverlay'
 import sections from './data/sections'
 import ClickSpark from './components/effects/ClickSpark'
 import Galaxy from './components/backgrounds/Galaxy'
@@ -40,7 +40,7 @@ const App = () => {
       setTimeout(() => {
         setIsCloudVisible(false)
         setScrolling(false)
-      }, 1500)
+      }, 2000)
     }
 
     window.addEventListener('wheel', handleScroll, { passive: true })
@@ -53,8 +53,8 @@ const App = () => {
       <div>
         <PlanetScene planetId={planetId} />
 
-        {/* Particle transition overlay (replaces cloud PNG overlay) */}
-        <ParticleOverlay direction={cloudDirection} isVisible={isCloudVisible} />
+        {/* Galaxy transition overlay (replaces cloud PNG overlay) */}
+        <GalaxyOverlay direction={cloudDirection} isVisible={isCloudVisible} />
 
         <ModeToggleButton mode={mode} setMode={setMode} />
 

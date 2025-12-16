@@ -9,7 +9,7 @@ const PortfolioSection = React.forwardRef(({ section, mode }, ref) => {
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -40 }}
-      transition={{ duration: 0.6, ease: 'easeInOut' }}
+      transition={{ duration: 0.8, ease: 'circOut' }}
       style={{
         position: 'relative',
         height: '100vh',
