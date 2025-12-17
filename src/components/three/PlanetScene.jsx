@@ -3,6 +3,7 @@ import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { TextureLoader } from 'three'
+import { html } from 'framer-motion/client'
 
 /* ---------------- TEXTURES ---------------- */
 
@@ -41,6 +42,8 @@ const ORBIT_BASE = 3.1
 const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
   const ref = useRef()
   const meshRef = useRef()
+  const labelVisibleRef = useRef(true)
+  const htmlRef = useRef()
 
   const moonTexture = useLoader(TextureLoader, '/textures/2k_moon.jpg')
   const planetTexture = useLoader(
@@ -86,6 +89,10 @@ const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
 
       const target = behind && !closing ? 0.0 : 1.0
       mat.opacity = mat.opacity + (target - mat.opacity) * 0.12
+      if (htmlRef.current?.style) {
+        htmlRef.current.style.opacity = String(mat.opacity)
+        htmlRef.current.style.display = mat.opacity < 0.05 ? 'none' : 'block'
+      }
     }
 
     const startR = PLANET_RADIUS + SPAWN_OFFSET
@@ -141,9 +148,10 @@ const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
         />
       </mesh>
 
-      {!closing && (
+      {(
         <Html
-          position={[0, 0.75, 0]}
+          ref={htmlRef}
+          position={[0, 0, 0]}
           center
           distanceFactor={10}
           style={{
