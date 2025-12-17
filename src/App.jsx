@@ -18,12 +18,20 @@ const App = () => {
   const [cloudDirection, setCloudDirection] = useState('down')
   const sectionRefs = useRef([])
 
+  // ✅ skills that will become 3D moons
+  const [skills, setSkills] = useState([])
+
+  /* ---------------- SCROLL HANDLING ---------------- */
+
   useEffect(() => {
     const handleScroll = (e) => {
+      e.preventDefault()
       if (scrolling || Math.abs(e.deltaY) < SCROLL_THRESHOLD) return
 
       const direction = e.deltaY > 0 ? 'down' : 'up'
-      const nextIndex = direction === 'down' ? currentIndex + 1 : currentIndex - 1
+      const nextIndex = direction === 'down'
+        ? currentIndex + 1
+        : currentIndex - 1
 
       if (nextIndex < 0 || nextIndex >= sections.length) return
 
@@ -34,6 +42,7 @@ const App = () => {
       setTimeout(() => {
         setCurrentIndex(nextIndex)
         setPlanetId((prev) => (prev % 5) + 1)
+        setSkills([]) // ✅ clear moons on section change
         setIsCloudVisible('exit')
       }, 800)
 
@@ -43,31 +52,81 @@ const App = () => {
       }, 2000)
     }
 
-    window.addEventListener('wheel', handleScroll, { passive: true })
+    window.addEventListener('wheel', handleScroll, { passive: false })
     return () => window.removeEventListener('wheel', handleScroll)
   }, [currentIndex, scrolling])
+
+  /* ---------------- SKILL CLICK HANDLING ---------------- */
+
+  useEffect(() => {
+  const CLOSE_MS = 750;
+
+  const closeAll = () => {
+  const now = performance.now()
+  setSkills(prev => prev.map(s => ({ ...s, closing: true, born: now })))
+  window.setTimeout(() => setSkills([]), CLOSE_MS)
+}
+
+  const onDocumentClick = (e) => {
+    const el = e.target.closest?.('.skill');
+
+    if (el) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const key = el.getAttribute('data-skill') || el.textContent?.trim();
+      if (!key) return;
+
+      // if anything is open, close first then open the new one (feels cinematic)
+      if (skills.length) closeAll();
+
+      // open after a tiny beat so you see the reverse animation
+      window.setTimeout(() => {
+        setSkills((prev) => (prev.some((s) => s.key === key) ? prev : [...prev, { key, closing: false, born: performance.now() }]));
+      }, skills.length ? CLOSE_MS : 0);
+
+      return;
+    }
+
+    if (skills.length) closeAll();
+  };
+
+  document.addEventListener('click', onDocumentClick);
+  return () => document.removeEventListener('click', onDocumentClick);
+}, [skills]);
+
+
+
+  /* ---------------- RENDER ---------------- */
 
   return (
     <ClickSpark sparkColor="#ffffff" sparkCount={10} sparkRadius={18} duration={420}>
       <Galaxy />
-      <div>
-        <PlanetScene planetId={planetId} />
 
-        {/* Galaxy transition overlay (replaces cloud PNG overlay) */}
-        <GalaxyOverlay direction={cloudDirection} isVisible={isCloudVisible} />
+      <div>
+        <PlanetScene
+          planetId={planetId}
+          skills={skills}   // ✅ moons now live in Three.js
+        />
+
+        <GalaxyOverlay
+          direction={cloudDirection}
+          isVisible={isCloudVisible}
+        />
 
         <ModeToggleButton mode={mode} setMode={setMode} />
 
-        {sections.map((section, index) => (
-          index === currentIndex && (
-            <PortfolioSection
-              key={`${section.id}-${mode}`}
-              ref={(el) => (sectionRefs.current[index] = el)}
-              section={section}
-              mode={mode}
-            />
-          )
-        ))}
+        {sections.map(
+          (section, index) =>
+            index === currentIndex && (
+              <PortfolioSection
+                key={`${section.id}-${mode}`}
+                ref={(el) => (sectionRefs.current[index] = el)}
+                section={section}
+                mode={mode}
+              />
+            )
+        )}
       </div>
     </ClickSpark>
   )

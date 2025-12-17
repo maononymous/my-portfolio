@@ -23,7 +23,7 @@ const PortfolioSection = React.forwardRef(({ section, mode }, ref) => {
         zIndex: 1,
         padding: 0,
         margin: 0,
-        transition: 'background 0.3s ease, color 0.3s ease',
+        transition: 'background 0.75s ease, color 0.75s ease',
       }}
     >
       <motion.div
@@ -41,10 +41,22 @@ const PortfolioSection = React.forwardRef(({ section, mode }, ref) => {
         }}
       >
         <h2 style={{ marginBottom: '0.5rem' }}>{section.title}</h2>
-        <h4 style={{ marginBottom: '1rem', fontWeight: 400 }}>{section.subtitle}</h4>
-        <p style={{ lineHeight: '1.6' }}>
-          {mode === 'DNA' ? section.dnaContent : section.planetContent}
-        </p>
+        <h4 style={{ marginBottom: '1rem', fontWeight: 400 }}>
+          {section.subtitle}
+        </h4>
+
+        {/* TEXT CONTENT */}
+        {mode === 'DNA' ? (
+          <p style={{ lineHeight: '1.6' }}>
+            {section.dnaContent}
+          </p>
+        ) : (
+          <div
+            className="planet-text"
+            style={{ lineHeight: '1.6' }}
+            dangerouslySetInnerHTML={{ __html: section.planetContent }}
+          />
+        )}
       </motion.div>
     </motion.section>
   )
