@@ -9,7 +9,7 @@ export default function GalaxyOverlay({ direction, isVisible }) {
         <motion.div
           key={`galaxy-enter-${direction}`}
           initial={{ y: direction === "down" ? "100%" : "-100%", opacity: 0 }}
-          animate={{ y: "0%", opacity: 1, transition: { duration: 1, ease: "easeInOut" } }}
+          animate={{ y: "0%", opacity: 1, transition: { duration: 1, ease: "easeOut" } }}
           exit={{ opacity: 1 }}
           style={baseStyle(direction)}
         >
@@ -35,7 +35,7 @@ export default function GalaxyOverlay({ direction, isVisible }) {
           animate={{
             y: direction === "down" ? "-100%" : "100%",
             opacity: 0,
-            transition: { duration: 1, ease: "easeInOut" },
+            transition: { duration: 1, ease: "easeIn" },
           }}
           style={baseStyle(direction)}
         >

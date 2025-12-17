@@ -83,3 +83,66 @@ html, body, #root {
   background: #000;
   overflow: hidden;              /* IMPORTANT */
 }
+
+/* Inline skill buttons — text-like but interactive */
+.skill {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 0.15em;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+
+  position: relative;
+  display: inline-block;
+
+  opacity: 0.9;
+  transition:
+    opacity 0.2s ease,
+    color 0.2s ease;
+}
+
+/* Subtle underline that feels like part of text */
+.skill::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -0.15em;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.25;
+  transform: scaleX(0.6);
+  transform-origin: center;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* Hover / focus */
+.skill:hover,
+.skill:focus-visible {
+  opacity: 1;
+  color: #e8ecff; /* or inherit if you want zero color shift */
+}
+
+.skill:hover::after,
+.skill:focus-visible::after {
+  opacity: 0.8;
+  transform: scaleX(1);
+}
+
+/* Active / pressed */
+.skill:active {
+  opacity: 0.75;
+}
+
+/* Remove ugly default focus outline */
+.skill:focus {
+  outline: none;
+}
+
+.planet-text .skill {
+  color: #cfd8ff;
+}

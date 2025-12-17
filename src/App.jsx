@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react'
 import PortfolioSection from './components/PortfolioSection'
-import PlanetScene from './components/three/PlanetScene'
+import PlanetScene, { MoonOverlay } from './components/three/PlanetScene'
 import ModeToggleButton from './components/ModeToggleButton'
 import GalaxyOverlay from './components/GalaxyOverlay'
 import sections from './data/sections'
@@ -18,7 +18,6 @@ const App = () => {
   const [cloudDirection, setCloudDirection] = useState('down')
   const sectionRefs = useRef([])
 
-  // ✅ skills that will become 3D moons
   const [skills, setSkills] = useState([])
 
   /* ---------------- SCROLL HANDLING ---------------- */
@@ -29,10 +28,7 @@ const App = () => {
       if (scrolling || Math.abs(e.deltaY) < SCROLL_THRESHOLD) return
 
       const direction = e.deltaY > 0 ? 'down' : 'up'
-      const nextIndex = direction === 'down'
-        ? currentIndex + 1
-        : currentIndex - 1
-
+      const nextIndex = direction === 'down' ? currentIndex + 1 : currentIndex - 1
       if (nextIndex < 0 || nextIndex >= sections.length) return
 
       setCloudDirection(direction)
@@ -42,7 +38,7 @@ const App = () => {
       setTimeout(() => {
         setCurrentIndex(nextIndex)
         setPlanetId((prev) => (prev % 5) + 1)
-        setSkills([]) // ✅ clear moons on section change
+        setSkills([])
         setIsCloudVisible('exit')
       }, 800)
 
@@ -59,43 +55,43 @@ const App = () => {
   /* ---------------- SKILL CLICK HANDLING ---------------- */
 
   useEffect(() => {
-  const CLOSE_MS = 750;
+    const CLOSE_MS = 750
 
-  const closeAll = () => {
-  const now = performance.now()
-  setSkills(prev => prev.map(s => ({ ...s, closing: true, born: now })))
-  window.setTimeout(() => setSkills([]), CLOSE_MS)
-}
-
-  const onDocumentClick = (e) => {
-    const el = e.target.closest?.('.skill');
-
-    if (el) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const key = el.getAttribute('data-skill') || el.textContent?.trim();
-      if (!key) return;
-
-      // if anything is open, close first then open the new one (feels cinematic)
-      if (skills.length) closeAll();
-
-      // open after a tiny beat so you see the reverse animation
-      window.setTimeout(() => {
-        setSkills((prev) => (prev.some((s) => s.key === key) ? prev : [...prev, { key, closing: false, born: performance.now() }]));
-      }, skills.length ? CLOSE_MS : 0);
-
-      return;
+    const closeAll = () => {
+      const now = performance.now()
+      setSkills((prev) => prev.map((s) => ({ ...s, closing: true, born: now })))
+      window.setTimeout(() => setSkills([]), CLOSE_MS)
     }
 
-    if (skills.length) closeAll();
-  };
+    const onDocumentClick = (e) => {
+      const el = e.target.closest?.('.skill')
 
-  document.addEventListener('click', onDocumentClick);
-  return () => document.removeEventListener('click', onDocumentClick);
-}, [skills]);
+      if (el) {
+        e.preventDefault()
+        e.stopPropagation()
 
+        const key = el.getAttribute('data-skill') || el.textContent?.trim()
+        if (!key) return
 
+        if (skills.length) closeAll()
+
+        window.setTimeout(() => {
+          setSkills((prev) =>
+            prev.some((s) => s.key === key)
+              ? prev
+              : [...prev, { key, closing: false, born: performance.now() }]
+          )
+        }, skills.length ? CLOSE_MS : 0)
+
+        return
+      }
+
+      if (skills.length) closeAll()
+    }
+
+    document.addEventListener('click', onDocumentClick)
+    return () => document.removeEventListener('click', onDocumentClick)
+  }, [skills])
 
   /* ---------------- RENDER ---------------- */
 
@@ -104,15 +100,13 @@ const App = () => {
       <Galaxy />
 
       <div>
-        <PlanetScene
-          planetId={planetId}
-          skills={skills}   // ✅ moons now live in Three.js
-        />
+        {/* planet behind text */}
+        <PlanetScene planetId={planetId} />
 
-        <GalaxyOverlay
-          direction={cloudDirection}
-          isVisible={isCloudVisible}
-        />
+        {/* moons above text */}
+        <MoonOverlay skills={skills} planetId={planetId} />
+
+        <GalaxyOverlay direction={cloudDirection} isVisible={isCloudVisible} />
 
         <ModeToggleButton mode={mode} setMode={setMode} />
 
