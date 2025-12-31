@@ -3,11 +3,8 @@ import React, { useEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import DNAHelixMesh from './DNAHelixMesh'
+import FloatingLines from '../backgrounds/FloatingLines'
 
-function seeded01(seed) {
-  const x = Math.sin(seed * 999.123) * 10000
-  return x - Math.floor(x)
-}
 function easeInOutQuad(t) {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
 }
@@ -17,13 +14,19 @@ function DNAHelix({ activeIndex, direction, onTransitionState }) {
   const transitioningRef = useRef(false)
   const rafRef = useRef(0)
 
-  // stable per section, used to “shift” the helix slice
-  const targetPhase = useMemo(() => {
-    const step = Math.PI * 0.65
-    return activeIndex * step
-  }, [activeIndex])
+  // ✅ single source of truth for helix continuity
+  const rotRef = useRef(0)
 
-  const phaseRef = useRef(targetPhase)
+  const PHASE_STEP = Math.PI // how much the helix advances per section
+
+  const ACTIVE_RUNG_PALETTE = useMemo(
+    () => ['#00e5ff', '#ff4dff', '#7CFF6B', '#FFD54A', '#9B7CFF'],
+    []
+  )
+
+  const activeRungColor = useMemo(() => {
+    return ACTIVE_RUNG_PALETTE[activeIndex % ACTIVE_RUNG_PALETTE.length]
+  }, [activeIndex, ACTIVE_RUNG_PALETTE])
 
   useEffect(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
@@ -36,14 +39,16 @@ function DNAHelix({ activeIndex, direction, onTransitionState }) {
     const DURATION = 800
 
     const group = groupRef.current
-    const startRot = group?.rotation?.y ?? 0
-    const targetRot = startRot + dir * Math.PI // rotation per scroll
+    const startRot = rotRef.current
+    const targetRot = startRot + dir * Math.PI * 0.65
+    rotRef.current = targetRot
 
     const startY = group?.position?.y ?? 0
     const targetY = -dir * 0.28
 
-    const startPhase = phaseRef.current
-    const endPhase = targetPhase
+    // ✅ cumulative phase (no snapping to activeIndex * step)
+    //const startPhase = phaseRef.current
+    //const endPhase = startPhase + dir * PHASE_STEP
 
     const tick = (t) => {
       const p = Math.min(1, (t - startTime) / DURATION)
@@ -54,7 +59,7 @@ function DNAHelix({ activeIndex, direction, onTransitionState }) {
         groupRef.current.position.y = THREE.MathUtils.lerp(startY, targetY, e)
       }
 
-      phaseRef.current = THREE.MathUtils.lerp(startPhase, endPhase, e)
+      //phaseRef.current = THREE.MathUtils.lerp(startPhase, endPhase, e)
 
       if (p < 1) {
         rafRef.current = requestAnimationFrame(tick)
@@ -62,38 +67,23 @@ function DNAHelix({ activeIndex, direction, onTransitionState }) {
       }
 
       if (groupRef.current) groupRef.current.position.y = 0
-      phaseRef.current = endPhase
+      //phaseRef.current = endPhase
 
       transitioningRef.current = false
-      onTransitionState?.('revealed')
+      onTransitionState?.('activated')
+      window.setTimeout(() => onTransitionState?.('revealed'), 140)
     }
 
     rafRef.current = requestAnimationFrame(tick)
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    }
-  }, [activeIndex, direction, targetPhase])
+    return () => rafRef.current && cancelAnimationFrame(rafRef.current)
 
-  // optional idle rotate (turn off while debugging)
+    // ✅ IMPORTANT: do NOT include onTransitionState in deps (it changes every render)
+  }, [activeIndex, direction])
+
+  // keep this OFF (your “keeps rotating” complaint)
   useFrame(() => {
-    if (!transitioningRef.current && groupRef.current) {
-        groupRef.current.rotation.y += 0.002
-    }
+    if (!transitioningRef.current && groupRef.current) groupRef.current.rotation.y += 0.002
   })
-
-  const ACTIVE_RUNG_PALETTE = [
-  '#00e5ff', // cyan
-  '#ff4dff', // magenta
-  '#7CFF6B', // neon green
-  '#FFD54A', // gold
-  '#9B7CFF', // violet
-]
-
-
-  const activeRungColor = useMemo(() => {
-    const palette = ACTIVE_RUNG_PALETTE
-    return palette[activeIndex % palette.length]
-  }, [activeIndex])
 
   return (
     <group ref={groupRef}>
@@ -110,7 +100,7 @@ function DNAHelix({ activeIndex, direction, onTransitionState }) {
         helixColor="#d6cfc4"
         activeRungColor={activeRungColor}
         sectionSeed={activeIndex}
-        phase={phaseRef.current}
+        phase={0}
       />
     </group>
   )
@@ -123,13 +113,46 @@ export default function DNAMode({ activeIndex, direction, onPhaseChange }) {
   }, [])
 
   return (
+  <div
+    style={{
+      position: 'fixed',
+      inset: 0,
+      zIndex: 0,
+      pointerEvents: 'auto',
+    }}
+  >
+    {/* FloatingLines background */}
     <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         inset: 0,
-        zIndex: 0,
+        pointerEvents: 'auto',
+      }}
+    >
+      <FloatingLines
+        enabledWaves={['top', 'middle', 'bottom']}
+        lineCount={[20, 5, 40]}
+        lineDistance={[20, 5, 40]}
+        bendRadius={8.0}
+        bendStrength={-1.0}
+        interactive={true}
+        parallax={true}
+        parallaxStrength={0.3}
+        linesGradient={[
+  '#0b1c1f',
+  '#123233',
+  '#1a4a4a'
+]}
+      />
+    </div>
+
+    {/* DNA Three.js canvas */}
+    <div
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 1,
         pointerEvents: 'none',
-        background: '#000000',
       }}
     >
       <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
@@ -143,5 +166,6 @@ export default function DNAMode({ activeIndex, direction, onPhaseChange }) {
         />
       </Canvas>
     </div>
-  )
+  </div>
+)
 }
