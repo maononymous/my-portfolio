@@ -47,6 +47,8 @@ function DNAHelix({ activeIndex, direction, dnaPhase, onTransitionState }) {
   const resumeRampMs = 220
   const skipNextFrameRef = useRef(false)
 
+  const isNarrow = window.matchMedia?.('(max-width: 768px)').matches
+
   // ✅ ensure constant rotation is full-speed on first mount (no accidental ramp-from-zero)
   useEffect(() => {
     resumeAtRef.current = performance.now() - resumeRampMs
@@ -155,7 +157,7 @@ function DNAHelix({ activeIndex, direction, dnaPhase, onTransitionState }) {
   return (
     <group ref={groupRef}>
       <DNAHelixMesh
-        height={7.4}
+        height={isNarrow ? 15 : 7.4}
         turns={0.74}
         radius={2.5}
         segments={400}
