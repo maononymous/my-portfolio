@@ -146,14 +146,18 @@ const App = () => {
       setTimeout(() => setScrolling(false), 900)
     }
 
-    window.addEventListener('touchstart', onTouchStart, { passive: true })
-    window.addEventListener('touchmove', onTouchMove, { passive: false })
-    window.addEventListener('touchend', onTouchEnd, { passive: true })
+    const optsStart = { passive: true, capture: true }
+    const optsMove  = { passive: false, capture: true }
+    const optsEnd   = { passive: true, capture: true }
+
+    window.addEventListener('touchstart', onTouchStart, optsStart)
+    window.addEventListener('touchmove', onTouchMove, optsMove)
+    window.addEventListener('touchend', onTouchEnd, optsEnd)
 
     return () => {
-      window.removeEventListener('touchstart', onTouchStart)
-      window.removeEventListener('touchmove', onTouchMove)
-      window.removeEventListener('touchend', onTouchEnd)
+      window.removeEventListener('touchstart', onTouchStart, optsStart)
+      window.removeEventListener('touchmove', onTouchMove, optsMove)
+      window.removeEventListener('touchend', onTouchEnd, optsEnd)
     }
   }, [currentIndex, mode, scrolling])
 
