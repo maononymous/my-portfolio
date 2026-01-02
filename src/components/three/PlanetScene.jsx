@@ -185,7 +185,7 @@ function ResponsiveCamera() {
 
     // If screen is tall/narrow (portrait phones), back camera up a bit
     if (aspect < 0.75) {
-      z = 7.2
+      z = 10
       fov = 48
     } else if (aspect < 1.0) {
       z = 6.6

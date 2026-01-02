@@ -158,7 +158,7 @@ function DNAHelix({ activeIndex, direction, dnaPhase, onTransitionState }) {
     <group ref={groupRef}>
       <DNAHelixMesh
         height={isNarrow ? 15 : 7.4}
-        turns={0.74}
+        turns={isNarrow ? 1.2 : 0.74}
         radius={2.5}
         segments={400}
         railRadius={0.074}
