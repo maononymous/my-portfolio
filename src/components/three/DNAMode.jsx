@@ -20,7 +20,7 @@ function ResponsiveCamera() {
     let fov = 45
 
     if (aspect < 0.75) {
-      z = 10
+      z = 15
       fov = 50
     } else if (aspect < 1.0) {
       z = 6.8
