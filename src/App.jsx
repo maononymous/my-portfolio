@@ -150,6 +150,7 @@ const App = () => {
           <DNAMode
             activeIndex={currentIndex}
             direction={lastScrollDir}
+            dnaPhase={dnaPhase}
             onPhaseChange={setDnaPhase}
           />
         </div>

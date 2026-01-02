@@ -1,6 +1,7 @@
 // components/three/DNAHelixMesh.jsx
 import React, { useMemo, useRef, useEffect } from 'react'
 import * as THREE from 'three'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 function seeded01(seed) {
   const x = Math.sin(seed * 999.123) * 10000
@@ -20,15 +21,15 @@ export default function DNAHelixMesh({
 
   // rungs
   rungEvery = 20,
-  rungRadius = 0.03,     // thickness of rung
-  rungInset = 0.98,       // 0..1 (lower => shorter rung)
+  rungRadius = 0.03,
+  rungInset = 1, // 0..1 (lower => shorter rung)
   rungOpacity = 1,
 
   // section marker
   sectionSeed = 0,
 
   // colors
-  helixColor = '#d6cfc4',
+  helixColor = '#6f7f7a',
   activeRungColor = '#c08457',
 
   // phase shift
@@ -90,20 +91,20 @@ export default function DNAHelixMesh({
   }, [height, turns, radius, segments, rungEvery, rungInset, phase])
 
   const activeRungIndex = useMemo(() => {
-    const n = rungData.length
-    if (!n) return 0
+  const n = rungData.length
+  if (!n) return 0
 
-    // pick only from the middle 60% so it’s always on-screen
-    const start = Math.floor(n * 0.30)  // 20% from top
-    const end = Math.ceil(n * 0.70)     // 80% from top
-    const windowSize = Math.max(1, end - start)
+  // middle window (keeps it on-screen)
+  const start = Math.floor(n * 0.30)
+  const end = Math.ceil(n * 0.70)
+  const windowSize = Math.max(1, end - start)
 
-    const r = seeded01(sectionSeed + 12345)
-    return start + Math.floor(r * windowSize)
-  }, [sectionSeed, rungData.length])
+  // rungData index increases bottom->top, so for TOP->BOTTOM we count backwards
+  const step = sectionSeed % windowSize
+  return (end - 1) - step
+}, [sectionSeed, rungData.length])
 
 
-  // Split into normal + active arrays (so we don’t need per-instance colors)
   const { normalRungs, activeRung } = useMemo(() => {
     const normals = []
     let active = null
@@ -114,65 +115,169 @@ export default function DNAHelixMesh({
     return { normalRungs: normals, activeRung: active }
   }, [rungData, activeRungIndex])
 
+  /* ---------------- RUNG GEOMETRY: POINTED CAPSULE ---------------- */
+  // Shape like your image: cone + cylinder + cone (sharp tips). Base height=1 along Y.
+  const rungGeom = useMemo(() => {
+    const tipFrac = 0.05 // tweak 0.15..0.30 (bigger = longer cone tips)
+    const tipH = tipFrac
+    const cylH = 1 - 2 * tipH
+
+    const radial = 14
+    const baseRadius = 0.5 // we scale thickness via instance scale
+
+    const cyl = new THREE.CylinderGeometry(baseRadius, baseRadius, cylH, radial, 1, false)
+
+    const coneTop = new THREE.ConeGeometry(baseRadius, tipH, radial, 1, false)
+    coneTop.translate(0, cylH / 2 + tipH / 2, 0)
+
+    const coneBottom = new THREE.ConeGeometry(baseRadius, tipH, radial, 1, false)
+    coneBottom.rotateX(Math.PI)
+    coneBottom.translate(0, -(cylH / 2 + tipH / 2), 0)
+
+    const g = mergeGeometries([cyl, coneTop, coneBottom], true)
+    g.computeVertexNormals()
+
+    cyl.dispose()
+    coneTop.dispose()
+    coneBottom.dispose()
+
+    return g
+  }, [])
+
+  /* ---------------- RUNG SPLIT + ACTIVE HALF ---------------- */
+
+  // thickness scale (x/z); tune down if too fat
+  const segThickness = rungRadius * 2.5
+
+  // choose which half of ACTIVE rung is highlighted: 'first' (A->mid) or 'second' (mid->B)
+  const activeHalf = useMemo(() => {
+    return seeded01(sectionSeed + 999) > 0.5 ? 'first' : 'second'
+  }, [sectionSeed])
+
   /* ---------------- INSTANCED SETUP ---------------- */
 
-  const normalRef = useRef()
-  const activeRef = useRef()
+  const normalFirstRef = useRef()
+  const normalSecondRef = useRef()
+  const activeFirstRef = useRef()
+  const activeSecondRef = useRef()
 
+  // Normal rungs: split each rung into 2 segments along length (A->mid, mid->B)
   useEffect(() => {
-    const mesh = normalRef.current
-    if (!mesh) return
-    mesh.count = normalRungs.length
+    const m1 = normalFirstRef.current
+    const m2 = normalSecondRef.current
+    if (!m1 || !m2) return
+
+    m1.count = normalRungs.length
+    m2.count = normalRungs.length
 
     const dummy = new THREE.Object3D()
     const up = new THREE.Vector3(0, 1, 0)
-    const mid = new THREE.Vector3()
+
+    const midAB = new THREE.Vector3()
     const dir = new THREE.Vector3()
+    const c1 = new THREE.Vector3()
+    const c2 = new THREE.Vector3()
 
-    for (let idx = 0; idx < normalRungs.length; idx++) {
-      const { a, b } = normalRungs[idx]
+    for (let i = 0; i < normalRungs.length; i++) {
+      const { a, b } = normalRungs[i]
 
-      mid.addVectors(a, b).multiplyScalar(0.5)
       dir.subVectors(b, a)
       const len = dir.length()
+      if (len < 1e-6) continue
 
-      dummy.position.copy(mid)
-      dummy.quaternion.setFromUnitVectors(up, dir.normalize())
-      // stretch along local Y (aligned to dir)
-      dummy.scale.set(1, len, 1)
+      const dirN = dir.clone().normalize()
+      midAB.addVectors(a, b).multiplyScalar(0.5)
+
+      // centers of halves
+      c1.addVectors(a, midAB).multiplyScalar(0.5)
+      c2.addVectors(midAB, b).multiplyScalar(0.5)
+
+      dummy.quaternion.setFromUnitVectors(up, dirN)
+
+      // FIRST HALF
+      dummy.position.copy(c1)
+      dummy.scale.set(segThickness, len * 0.5, segThickness)
       dummy.updateMatrix()
+      m1.setMatrixAt(i, dummy.matrix)
 
-      mesh.setMatrixAt(idx, dummy.matrix)
+      // SECOND HALF
+      dummy.position.copy(c2)
+      dummy.scale.set(segThickness, len * 0.5, segThickness)
+      dummy.updateMatrix()
+      m2.setMatrixAt(i, dummy.matrix)
     }
 
-    mesh.instanceMatrix.needsUpdate = true
-  }, [normalRungs])
+    m1.instanceMatrix.needsUpdate = true
+    m2.instanceMatrix.needsUpdate = true
+  }, [normalRungs, segThickness])
 
+  // Active rung: split into 2 halves (both exist), but only one half gets active color
   useEffect(() => {
-    const mesh = activeRef.current
-    if (!mesh) return
-    mesh.count = activeRung ? 1 : 0
-    if (!activeRung) return
+    const a1 = activeFirstRef.current
+    const a2 = activeSecondRef.current
+    if (!a1 || !a2) return
+
+    const has = !!activeRung
+    a1.count = has ? 1 : 0
+    a2.count = has ? 1 : 0
+    if (!has) return
 
     const dummy = new THREE.Object3D()
     const up = new THREE.Vector3(0, 1, 0)
-    const mid = new THREE.Vector3()
+
+    const midAB = new THREE.Vector3()
     const dir = new THREE.Vector3()
+    const c1 = new THREE.Vector3()
+    const c2 = new THREE.Vector3()
 
     const { a, b } = activeRung
 
-    mid.addVectors(a, b).multiplyScalar(0.5)
     dir.subVectors(b, a)
     const len = dir.length()
+    if (len < 1e-6) return
+    const dirN = dir.clone().normalize()
 
-    dummy.position.copy(mid)
-    dummy.quaternion.setFromUnitVectors(up, dir.normalize())
-    dummy.scale.set(1, len, 1)
+    midAB.addVectors(a, b).multiplyScalar(0.5)
+    c1.addVectors(a, midAB).multiplyScalar(0.5)
+    c2.addVectors(midAB, b).multiplyScalar(0.5)
+
+    dummy.quaternion.setFromUnitVectors(up, dirN)
+
+    // first half
+    dummy.position.copy(c1)
+    dummy.scale.set(segThickness, len * 0.5, segThickness)
     dummy.updateMatrix()
+    a1.setMatrixAt(0, dummy.matrix)
 
-    mesh.setMatrixAt(0, dummy.matrix)
-    mesh.instanceMatrix.needsUpdate = true
-  }, [activeRung])
+    // second half
+    dummy.position.copy(c2)
+    dummy.scale.set(segThickness, len * 0.5, segThickness)
+    dummy.updateMatrix()
+    a2.setMatrixAt(0, dummy.matrix)
+
+    a1.instanceMatrix.needsUpdate = true
+    a2.instanceMatrix.needsUpdate = true
+  }, [activeRung, segThickness])
+
+  /* ---------------- MATERIALS ---------------- */
+
+  const railMatProps = {
+    color: helixColor,
+    roughness: 0.6,
+    metalness: 0.02,
+    emissive: helixColor,
+    emissiveIntensity: 0.02,
+  }
+
+  const rungMatProps = {
+    color: helixColor,
+    roughness: 0.65,
+    metalness: 0.0,
+    emissive: helixColor,
+    emissiveIntensity: 0.015,
+    transparent: true,
+    opacity: 1
+  }
 
   /* ---------------- RENDER ---------------- */
 
@@ -180,31 +285,66 @@ export default function DNAHelixMesh({
     <group>
       {/* rails */}
       <mesh geometry={leftGeom}>
-        <meshBasicMaterial color={helixColor} />
+        <meshStandardMaterial {...railMatProps} />
       </mesh>
       <mesh geometry={rightGeom}>
-        <meshBasicMaterial color={helixColor} />
+        <meshStandardMaterial {...railMatProps} />
       </mesh>
 
-      {/* normal rungs */}
+      {/* normal rungs - first half */}
       <instancedMesh
-        key={`normal-${normalRungs.length}-${rungRadius}`}
-        ref={normalRef}
+        key={`normal-first-${normalRungs.length}-${rungRadius}`}
+        ref={normalFirstRef}
         args={[null, null, Math.max(1, normalRungs.length)]}
       >
-        {/* Box rungs look like base-pairs and never go “black” */}
-        <cylinderGeometry args={[rungRadius, rungRadius, 1, 12, 1, false]} />
-        <meshBasicMaterial color={helixColor} transparent opacity={rungOpacity} />
+        <primitive object={rungGeom} attach="geometry" />
+        <meshStandardMaterial {...rungMatProps} />
       </instancedMesh>
 
-      {/* active rung */}
+      {/* normal rungs - second half */}
       <instancedMesh
-        key={`active-${activeRungIndex}-${rungRadius}`}
-        ref={activeRef}
+        key={`normal-second-${normalRungs.length}-${rungRadius}`}
+        ref={normalSecondRef}
+        args={[null, null, Math.max(1, normalRungs.length)]}
+      >
+        <primitive object={rungGeom} attach="geometry" />
+        <meshStandardMaterial {...rungMatProps} />
+      </instancedMesh>
+
+      {/* active rung - first half */}
+      <instancedMesh
+        key={`active-first-${activeRungIndex}-${rungRadius}`}
+        ref={activeFirstRef}
         args={[null, null, 1]}
       >
-        <cylinderGeometry args={[rungRadius, rungRadius, 1, 12, 1, false]} />
-        <meshBasicMaterial color={activeRungColor} transparent opacity={Math.min(1, rungOpacity + 0.1)} />
+        <primitive object={rungGeom} attach="geometry" />
+        <meshStandardMaterial
+          color={activeHalf === 'first' ? activeRungColor : helixColor}
+          roughness={0.35}
+          metalness={0.08}
+          emissive={activeHalf === 'first' ? activeRungColor : helixColor}
+          emissiveIntensity={activeHalf === 'first' ? 0.09 : 0.015}
+          transparent
+          opacity={1}
+        />
+      </instancedMesh>
+
+      {/* active rung - second half */}
+      <instancedMesh
+        key={`active-second-${activeRungIndex}-${rungRadius}`}
+        ref={activeSecondRef}
+        args={[null, null, 1]}
+      >
+        <primitive object={rungGeom} attach="geometry" />
+        <meshStandardMaterial
+          color={activeHalf === 'second' ? activeRungColor : helixColor}
+          roughness={0.35}
+          metalness={0.08}
+          emissive={activeHalf === 'second' ? activeRungColor : helixColor}
+          emissiveIntensity={activeHalf === 'second' ? 0.09 : 0.015}
+          transparent
+          opacity={1}
+        />
       </instancedMesh>
     </group>
   )

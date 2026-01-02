@@ -9,24 +9,28 @@ function easeInOutQuad(t) {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
 }
 
-function DNAHelix({ activeIndex, direction, onTransitionState }) {
+function DNAHelix({ activeIndex, direction, dnaPhase, onTransitionState }) {
   const groupRef = useRef()
   const transitioningRef = useRef(false)
   const rafRef = useRef(0)
 
-  // ✅ single source of truth for helix continuity
   const rotRef = useRef(0)
 
-  const PHASE_STEP = Math.PI // how much the helix advances per section
-
   const ACTIVE_RUNG_PALETTE = useMemo(
-    () => ['#00e5ff', '#ff4dff', '#7CFF6B', '#FFD54A', '#9B7CFF'],
+    () => [
+      '#8b1e3f', // deep crimson
+      '#1f3c88', // royal indigo
+      '#0f5132', // forest green
+      '#4a235a', // dark violet
+      '#003f3f', // dark cyan
+    ],
     []
   )
 
   const activeRungColor = useMemo(() => {
-    return ACTIVE_RUNG_PALETTE[activeIndex % ACTIVE_RUNG_PALETTE.length]
-  }, [activeIndex, ACTIVE_RUNG_PALETTE])
+    const c = ACTIVE_RUNG_PALETTE[activeIndex % ACTIVE_RUNG_PALETTE.length]
+    return dnaPhase === 'revealed' ? c : '#d6cfc4' // hide highlight until revealed
+  }, [activeIndex, dnaPhase, ACTIVE_RUNG_PALETTE])
 
   useEffect(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
@@ -46,10 +50,6 @@ function DNAHelix({ activeIndex, direction, onTransitionState }) {
     const startY = group?.position?.y ?? 0
     const targetY = -dir * 0.28
 
-    // ✅ cumulative phase (no snapping to activeIndex * step)
-    //const startPhase = phaseRef.current
-    //const endPhase = startPhase + dir * PHASE_STEP
-
     const tick = (t) => {
       const p = Math.min(1, (t - startTime) / DURATION)
       const e = easeInOutQuad(p)
@@ -59,15 +59,12 @@ function DNAHelix({ activeIndex, direction, onTransitionState }) {
         groupRef.current.position.y = THREE.MathUtils.lerp(startY, targetY, e)
       }
 
-      //phaseRef.current = THREE.MathUtils.lerp(startPhase, endPhase, e)
-
       if (p < 1) {
         rafRef.current = requestAnimationFrame(tick)
         return
       }
 
       if (groupRef.current) groupRef.current.position.y = 0
-      //phaseRef.current = endPhase
 
       transitioningRef.current = false
       onTransitionState?.('activated')
@@ -76,11 +73,8 @@ function DNAHelix({ activeIndex, direction, onTransitionState }) {
 
     rafRef.current = requestAnimationFrame(tick)
     return () => rafRef.current && cancelAnimationFrame(rafRef.current)
+  }, [activeIndex, direction]) // keep deps tight
 
-    // ✅ IMPORTANT: do NOT include onTransitionState in deps (it changes every render)
-  }, [activeIndex, direction])
-
-  // keep this OFF (your “keeps rotating” complaint)
   useFrame(() => {
     if (!transitioningRef.current && groupRef.current) groupRef.current.rotation.y += 0.002
   })
@@ -94,7 +88,7 @@ function DNAHelix({ activeIndex, direction, onTransitionState }) {
         segments={400}
         railRadius={0.074}
         rungEvery={17}
-        rungInset={0.95}
+        rungInset={1}
         rungRadius={0.037}
         rungOpacity={0.8}
         helixColor="#d6cfc4"
@@ -106,66 +100,70 @@ function DNAHelix({ activeIndex, direction, onTransitionState }) {
   )
 }
 
-export default function DNAMode({ activeIndex, direction, onPhaseChange }) {
+// Background mounts once, never re-renders unless YOU change these memo'd values.
+const DNABackground = React.memo(function DNABackground() {
+  const enabledWaves = useMemo(() => ['top', 'middle', 'bottom'], [])
+  const lineCount = useMemo(() => [20, 5, 40], [])
+  const lineDistance = useMemo(() => [20, 5, 40], [])
+  const linesGradient = useMemo(() => ['#0b1c1f', '#123233', '#1a4a4a'], [])
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'auto' }}>
+      <FloatingLines
+        enabledWaves={enabledWaves}
+        lineCount={lineCount}
+        lineDistance={lineDistance}
+        bendRadius={8.0}
+        bendStrength={-1.0}
+        interactive={true}
+        parallax={true}
+        parallaxStrength={0.3}
+        linesGradient={linesGradient}
+        mixBlendMode="normal"
+      />
+    </div>
+  )
+})
+
+export default function DNAMode({ activeIndex, direction, dnaPhase, onPhaseChange }) {
   useEffect(() => {
     onPhaseChange?.('revealed')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
-  <div
-    style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 0,
-      pointerEvents: 'auto',
-    }}
-  >
-    {/* FloatingLines background */}
     <div
       style={{
-        position: 'absolute',
+        position: 'fixed',
         inset: 0,
+        zIndex: 0,
         pointerEvents: 'auto',
       }}
     >
-      <FloatingLines
-        enabledWaves={['top', 'middle', 'bottom']}
-        lineCount={[20, 5, 40]}
-        lineDistance={[20, 5, 40]}
-        bendRadius={8.0}
-        bendStrength={-1.0}
-        interactive={true}
-        parallax={true}
-        parallaxStrength={0.3}
-        linesGradient={[
-  '#0b1c1f',
-  '#123233',
-  '#1a4a4a'
-]}
-      />
-    </div>
+      {/* FloatingLines background (stable, does NOT restart on scroll) */}
+      <DNABackground />
 
-    {/* DNA Three.js canvas */}
-    <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        zIndex: 1,
-        pointerEvents: 'none',
-      }}
-    >
-      <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
-        <ambientLight intensity={0.55} />
-        <directionalLight position={[3, 4, 6]} intensity={0.9} />
+      {/* DNA Three.js canvas */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 1,
+          pointerEvents: 'none',
+        }}
+      >
+        <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
+          <ambientLight intensity={0.55} />
+          <directionalLight position={[3, 4, 6]} intensity={0.9} />
 
-        <DNAHelix
-          activeIndex={activeIndex}
-          direction={direction}
-          onTransitionState={(phase) => onPhaseChange?.(phase)}
-        />
-      </Canvas>
+          <DNAHelix
+            activeIndex={activeIndex}
+            direction={direction}
+            dnaPhase={dnaPhase}
+            onTransitionState={(phase) => onPhaseChange?.(phase)}
+          />
+        </Canvas>
+      </div>
     </div>
-  </div>
-)
+  )
 }
