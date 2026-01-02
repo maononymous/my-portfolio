@@ -16,7 +16,8 @@ const PortfolioSection = React.forwardRef(({ section, mode, dnaPhase = 'revealed
       transition={{ duration: mode === 'DNA' ? 0.35 : 0.8, ease: 'circOut' }}
       style={{
         position: 'relative',
-        height: '100vh',
+        height: '100svh',
+        minHeight: '100dvh',
         width: '100vw',
         display: 'flex',
         alignItems: 'center',

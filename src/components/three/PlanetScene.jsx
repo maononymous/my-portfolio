@@ -175,6 +175,7 @@ const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
 const PlanetScene = ({ planetId, speed = 0.002 }) => {
   return (
     <Canvas
+      dpr={[1, 1.5]}
       style={{
         position: 'fixed',
         inset: 0,
@@ -196,6 +197,7 @@ const PlanetScene = ({ planetId, speed = 0.002 }) => {
 export const MoonOverlay = ({ skills = [], planetId }) => {
   return (
     <Canvas
+      dpr={[1, 1.5]}
       gl={{ alpha: true }}
       onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       style={{

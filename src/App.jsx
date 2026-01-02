@@ -7,6 +7,7 @@ import GalaxyOverlay from './components/GalaxyOverlay'
 import sections from './data/sections'
 import ClickSpark from './components/effects/ClickSpark'
 import Galaxy from './components/backgrounds/Galaxy'
+import { isTypingTarget } from "./utils/isTypingTarget"
 
 // NEW
 import DNAMode from './components/three/DNAMode'
@@ -75,6 +76,170 @@ const App = () => {
     window.addEventListener('wheel', handleScroll, { passive: false })
     return () => window.removeEventListener('wheel', handleScroll)
   }, [currentIndex, scrolling, mode])
+
+  useEffect(() => {
+    let startX = 0
+    let startY = 0
+    let tracking = false
+
+    const THRESHOLD = 55        // swipe distance
+    const MAX_OFF_AXIS = 80     // ignore mostly horizontal gestures
+
+    const onTouchStart = (e) => {
+      const t = e.touches?.[0]
+      if (!t) return
+      tracking = true
+      startX = t.clientX
+      startY = t.clientY
+    }
+
+    const onTouchMove = (e) => {
+      // prevent iOS “rubber band” / back-swipe weirdness while tracking
+      if (tracking) e.preventDefault()
+    }
+
+    const onTouchEnd = (e) => {
+      if (!tracking) return
+      tracking = false
+
+      const t = e.changedTouches?.[0]
+      if (!t) return
+
+      const dx = t.clientX - startX
+      const dy = t.clientY - startY
+
+      // ignore mostly horizontal swipes
+      if (Math.abs(dx) > MAX_OFF_AXIS || Math.abs(dx) > Math.abs(dy)) return
+      if (Math.abs(dy) < THRESHOLD) return
+
+      const direction = dy < 0 ? 'down' : 'up'
+      if (scrolling) return
+
+      const nextIndex = direction === 'down' ? currentIndex + 1 : currentIndex - 1
+      if (nextIndex < 0 || nextIndex >= sections.length) return
+
+      setLastScrollDir(direction)
+
+      if (mode === 'Planet') {
+        setCloudDirection(direction)
+        setScrolling(true)
+        setIsCloudVisible('entry')
+
+        setTimeout(() => {
+          setCurrentIndex(nextIndex)
+          setPlanetId((prev) => (prev % 5) + 1)
+          setSkills([])
+          setIsCloudVisible('exit')
+        }, 800)
+
+        setTimeout(() => {
+          setIsCloudVisible(false)
+          setScrolling(false)
+        }, 2000)
+
+        return
+      }
+
+      setDnaPhase('transitioning')
+      setScrolling(true)
+      setCurrentIndex(nextIndex)
+      setTimeout(() => setScrolling(false), 900)
+    }
+
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchmove', onTouchMove, { passive: false })
+    window.addEventListener('touchend', onTouchEnd, { passive: true })
+
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchend', onTouchEnd)
+    }
+  }, [currentIndex, mode, scrolling])
+
+  /* ---------------- KEYBOARD NAV (UPDATED) ---------------- */
+
+  useEffect(() => {
+    const doStep = (direction) => {
+      if (scrolling) return
+
+      const nextIndex = direction === 'down' ? currentIndex + 1 : currentIndex - 1
+      if (nextIndex < 0 || nextIndex >= sections.length) return
+
+      setLastScrollDir(direction)
+
+      // ✅ Planet mode: identical behavior to wheel
+      if (mode === 'Planet') {
+        setCloudDirection(direction)
+        setScrolling(true)
+        setIsCloudVisible('entry')
+
+        setTimeout(() => {
+          setCurrentIndex(nextIndex)
+          setPlanetId((prev) => (prev % 5) + 1)
+          setSkills([])
+          setIsCloudVisible('exit')
+        }, 800)
+
+        setTimeout(() => {
+          setIsCloudVisible(false)
+          setScrolling(false)
+        }, 2000)
+
+        return
+      }
+
+      // ✅ DNA mode: identical behavior to wheel
+      setDnaPhase('transitioning')
+      setScrolling(true)
+      setCurrentIndex(nextIndex)
+      setTimeout(() => setScrolling(false), 900)
+    }
+
+    const onKeyDown = (e) => {
+      if (isTypingTarget(document.activeElement)) return
+
+      const key = e.key
+
+      // Move down
+      if (key === 'ArrowDown' || key === 'PageDown' || key === ' ') {
+        e.preventDefault()
+        doStep('down')
+        return
+      }
+
+      // Move up
+      if (key === 'ArrowUp' || key === 'PageUp') {
+        e.preventDefault()
+        doStep('up')
+        return
+      }
+
+      // Home / End (jump)
+      if (key === 'Home') {
+        e.preventDefault()
+        if (scrolling) return
+        if (currentIndex === 0) return
+
+        // treat as repeated "up" jumps? nope — instant jump with your current animation rules:
+        // We'll do a single transition to target by stepping until you implement menu/jump properly.
+        // For now, do one step so it stays consistent with your transition system.
+        doStep('up')
+        return
+      }
+
+      if (key === 'End') {
+        e.preventDefault()
+        if (scrolling) return
+        if (currentIndex === sections.length - 1) return
+        doStep('down')
+        return
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown, { passive: false })
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [currentIndex, scrolling, mode]) // keep deps simple + correct
 
   /* ---------------- MODE SWITCH SAFETY ---------------- */
 

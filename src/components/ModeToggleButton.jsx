@@ -12,13 +12,13 @@ const ModeToggleButton = ({ mode, setMode }) => {
       aria-label={mode === 'DNA' ? 'Switch to Planet View' : 'Switch to DNA View'}
       style={{
         position: 'fixed',
-        top: '1rem',
-        right: '1rem',
-        padding: '0.75rem 1.25rem',
+        top: 'calc(var(--safe-top) + 12px)',
+        right: 'calc(var(--safe-right) + 12px)',
+        padding: '0.85rem 1.1rem',
         background: mode === 'DNA' ? '#4CAF50' : '#2196F3',
         color: 'white',
         border: 'none',
-        borderRadius: '8px',
+        borderRadius: '12px',
         fontWeight: 'bold',
         cursor: 'pointer',
         zIndex: 1000,
