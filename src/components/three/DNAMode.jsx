@@ -4,9 +4,35 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import DNAHelixMesh from './DNAHelixMesh'
 import FloatingLines from '../backgrounds/FloatingLines'
+import { useThree } from '@react-three/fiber'
 
 function easeInOutQuad(t) {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
+}
+
+function ResponsiveCamera() {
+  const { camera, size } = useThree()
+
+  useEffect(() => {
+    const aspect = size.width / size.height
+
+    let z = 6
+    let fov = 45
+
+    if (aspect < 0.75) {
+      z = 7.4
+      fov = 50
+    } else if (aspect < 1.0) {
+      z = 6.8
+      fov = 47
+    }
+
+    camera.position.set(0, 0, z)
+    camera.fov = fov
+    camera.updateProjectionMatrix()
+  }, [camera, size.width, size.height])
+
+  return null
 }
 
 function DNAHelix({ activeIndex, direction, dnaPhase, onTransitionState }) {
@@ -199,7 +225,8 @@ export default function DNAMode({ activeIndex, direction, dnaPhase, onPhaseChang
           pointerEvents: 'none',
         }}
       >
-        <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
+        <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0, 6], fov: 45 }}>
+          <ResponsiveCamera />
           <ambientLight intensity={0.55} />
           <directionalLight position={[3, 4, 6]} intensity={0.9} />
 

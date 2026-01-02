@@ -4,6 +4,8 @@ import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { TextureLoader } from 'three'
 import { html } from 'framer-motion/client'
+import { useThree } from '@react-three/fiber'
+import { useEffect } from 'react'
 
 /* ---------------- TEXTURES ---------------- */
 
@@ -171,6 +173,33 @@ const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
 
 /* ---------------- SCENES ---------------- */
 
+function ResponsiveCamera() {
+  const { camera, size } = useThree()
+
+  useEffect(() => {
+    const aspect = size.width / size.height
+
+    // Base values (your current)
+    let z = 6
+    let fov = 45
+
+    // If screen is tall/narrow (portrait phones), back camera up a bit
+    if (aspect < 0.75) {
+      z = 7.2
+      fov = 48
+    } else if (aspect < 1.0) {
+      z = 6.6
+      fov = 46
+    }
+
+    camera.position.set(0, 0, z)
+    camera.fov = fov
+    camera.updateProjectionMatrix()
+  }, [camera, size.width, size.height])
+
+  return null
+}
+
 // ✅ Planet canvas: behind everything
 const PlanetScene = ({ planetId, speed = 0.002 }) => {
   return (
@@ -184,6 +213,7 @@ const PlanetScene = ({ planetId, speed = 0.002 }) => {
       }}
       camera={{ position: [0, 0, 6], fov: 45 }}
     >
+      <ResponsiveCamera />
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 5, 5]} intensity={1} />
       <Suspense fallback={null}>
@@ -208,6 +238,7 @@ export const MoonOverlay = ({ skills = [], planetId }) => {
       }}
       camera={{ position: [0, 0, 6], fov: 45 }}
     >
+      <ResponsiveCamera />
       <ambientLight intensity={0.9} />
       <Suspense fallback={null}>
         {skills.map((s, i) => (
