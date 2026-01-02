@@ -16,6 +16,16 @@ function DNAHelix({ activeIndex, direction, dnaPhase, onTransitionState }) {
 
   const rotRef = useRef(0)
 
+  // ramp timing for smooth "resume rotation"
+  const resumeAtRef = useRef(0)
+  const resumeRampMs = 220
+  const skipNextFrameRef = useRef(false)
+
+  // ✅ ensure constant rotation is full-speed on first mount (no accidental ramp-from-zero)
+  useEffect(() => {
+    resumeAtRef.current = performance.now() - resumeRampMs
+  }, [])
+
   const ACTIVE_RUNG_PALETTE = useMemo(
     () => [
       '#8b1e3f', // deep crimson
@@ -29,7 +39,7 @@ function DNAHelix({ activeIndex, direction, dnaPhase, onTransitionState }) {
 
   const activeRungColor = useMemo(() => {
     const c = ACTIVE_RUNG_PALETTE[activeIndex % ACTIVE_RUNG_PALETTE.length]
-    return dnaPhase === 'revealed' ? c : '#d6cfc4' // hide highlight until revealed
+    return dnaPhase === 'revealed' ? c : '#d6cfc4' // show highlight only after revealed
   }, [activeIndex, dnaPhase, ACTIVE_RUNG_PALETTE])
 
   useEffect(() => {
@@ -43,9 +53,12 @@ function DNAHelix({ activeIndex, direction, dnaPhase, onTransitionState }) {
     const DURATION = 800
 
     const group = groupRef.current
-    const startRot = rotRef.current
-    const targetRot = startRot + dir * Math.PI * 0.65
-    rotRef.current = targetRot
+
+    // ✅ start from ACTUAL visible rotation (prevents start jerk)
+    const startRot = group?.rotation?.y ?? rotRef.current
+    rotRef.current = startRot
+
+    const targetRot = startRot + dir * Math.PI 
 
     const startY = group?.position?.y ?? 0
     const targetY = -dir * 0.28
@@ -64,9 +77,19 @@ function DNAHelix({ activeIndex, direction, dnaPhase, onTransitionState }) {
         return
       }
 
-      if (groupRef.current) groupRef.current.position.y = 0
+      // ✅ lock final values exactly (prevents end jitter)
+      if (groupRef.current) {
+        groupRef.current.rotation.y = targetRot
+        groupRef.current.position.y = 0
+      }
+      rotRef.current = targetRot
+
+      // ✅ ramp rotation back in smoothly (prevents end "kick")
+      resumeAtRef.current = performance.now()
 
       transitioningRef.current = false
+
+      skipNextFrameRef.current = true
       onTransitionState?.('activated')
       window.setTimeout(() => onTransitionState?.('revealed'), 140)
     }
@@ -76,7 +99,31 @@ function DNAHelix({ activeIndex, direction, dnaPhase, onTransitionState }) {
   }, [activeIndex, direction]) // keep deps tight
 
   useFrame(() => {
-    if (!transitioningRef.current && groupRef.current) groupRef.current.rotation.y += 0.002
+    const g = groupRef.current
+    if (!g) return
+
+    if (skipNextFrameRef.current) {
+      skipNextFrameRef.current = false
+      rotRef.current = g.rotation.y // keep sync
+      return
+    }
+
+
+    // during transition: tick() owns rotation
+    if (transitioningRef.current) {
+      // keep ref synced anyway (safety)
+      rotRef.current = g.rotation.y
+      return
+    }
+
+    // ramp back to constant speed after transition
+    const now = performance.now()
+    const t = Math.min(1, (now - resumeAtRef.current) / resumeRampMs)
+    const ramp = t * t * (3 - 2 * t) // smoothstep 0->1
+    const speed = 0.002 * ramp
+
+    g.rotation.y += speed
+    rotRef.current = g.rotation.y // ✅ keep ref synced always
   })
 
   return (
