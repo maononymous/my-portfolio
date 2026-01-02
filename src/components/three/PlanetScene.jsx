@@ -41,17 +41,6 @@ const PLANET_RADIUS = 2
 const SPAWN_OFFSET = 0.4
 const ORBIT_BASE = 3.1
 
-const isMobileRef = useRef(false)
-
-useEffect(() => {
-  const mq = window.matchMedia('(max-width: 768px)')
-  const update = () => (isMobileRef.current = mq.matches)
-  update()
-  mq.addEventListener?.('change', update)
-  return () => mq.removeEventListener?.('change', update)
-}, [])
-
-
 const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
   const ref = useRef()
   const meshRef = useRef()
@@ -64,6 +53,16 @@ const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
     textureMap[planetId] || textureMap[1]
   )
 
+  const isMobileRef = useRef(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const update = () => (isMobileRef.current = mq.matches)
+    update()
+    mq.addEventListener?.('change', update)
+    return () => mq.removeEventListener?.('change', update)
+  }, [])
+  
   const orbitRadius = ORBIT_BASE + (index % 3) * 0.6
   const speed = 0.05 + index * 0.05
   const offset = total ? (index / total) * Math.PI : 0
