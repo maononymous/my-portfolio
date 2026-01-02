@@ -41,6 +41,17 @@ const PLANET_RADIUS = 2
 const SPAWN_OFFSET = 0.4
 const ORBIT_BASE = 3.1
 
+const isMobileRef = useRef(false)
+
+useEffect(() => {
+  const mq = window.matchMedia('(max-width: 768px)')
+  const update = () => (isMobileRef.current = mq.matches)
+  update()
+  mq.addEventListener?.('change', update)
+  return () => mq.removeEventListener?.('change', update)
+}, [])
+
+
 const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
   const ref = useRef()
   const meshRef = useRef()
@@ -99,34 +110,53 @@ const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
 
     const startR = PLANET_RADIUS + SPAWN_OFFSET
 
-    // spawn point: dead-center, front of planet
-    const spawnX = 0
-    const spawnZ = startR
+    // --- choose orbit plane based on device ---
+    const isMobile = isMobileRef.current
 
-    // orbit point (full circle, but sped up when behind)
-    const orbitX = Math.cos(angle) * orbitRadius
-    const orbitZ = Math.sin(angle) * orbitRadius
+    // Orbit target
+    let orbitX = 0, orbitY = 0, orbitZ = 0
+    if (isMobile) {
+      // Mobile: Y–Z plane (vertical on screen)
+      orbitY = Math.cos(angle) * orbitRadius
+      orbitZ = Math.sin(angle) * orbitRadius
+    } else {
+      // Desktop: X–Z plane (your current horizontal orbit)
+      orbitX = Math.cos(angle) * orbitRadius
+      orbitZ = Math.sin(angle) * orbitRadius
+    }
 
-    // easing (born is reset on close in App.jsx)
+    // Spawn start
+    let spawnX = 0, spawnY = 0, spawnZ = 0
+    if (isMobile) {
+      // Mobile: start below the planet
+      spawnY = -startR
+      spawnZ = 0
+    } else {
+      // Desktop: your current start "in front"
+      spawnX = 0
+      spawnZ = startR
+    }
+    // easing (keep your existing)
     const elapsed = performance.now() - born
     const p = Math.min(1, Math.max(0, elapsed / 650))
     const ease = p * p * (3 - 2 * p)
 
-    let x, z
+    let x, y, z
 
     if (!closing) {
       // OPEN: spawn -> orbit
       x = spawnX + (orbitX - spawnX) * ease
+      y = spawnY + (orbitY - spawnY) * ease
       z = spawnZ + (orbitZ - spawnZ) * ease
     } else {
-      // CLOSE: orbit -> planet center
-      const sinkX = 0
-      const sinkZ = 0
+      // CLOSE: orbit -> center
+      const sinkX = 0, sinkY = 0, sinkZ = 0
       x = orbitX + (sinkX - orbitX) * ease
+      y = orbitY + (sinkY - orbitY) * ease
       z = orbitZ + (sinkZ - orbitZ) * ease
     }
 
-    ref.current.position.set(x, 0, z)
+    ref.current.position.set(x, y, z)
 
     // scale
     const target = closing ? 0.0 : 1.0
