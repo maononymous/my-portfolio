@@ -17,6 +17,10 @@ export default function SectionBubbleMenu({
   const bubblesRef = useRef([])
   const labelRefs = useRef([])
 
+  const mobileOverlayRef = useRef(null)
+  const mobileSheetRef = useRef(null)
+
+
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 899px)').matches : false
   )
@@ -53,33 +57,35 @@ export default function SectionBubbleMenu({
     )
   }, [open, isMobile, sections.length, MAX_ROT])
 
-  // ✅ Lock background scroll on mobile when menu is open (iOS-safe)
+  // ✅ iOS-safe scroll lock: block background, allow scroll inside menu
   useEffect(() => {
-    if (!open) return
-    if (!isMobile) return
+    if (!open || !isMobile) return
 
-    const scrollY = window.scrollY || window.pageYOffset
+    const overlayEl = mobileOverlayRef.current
 
-    // Lock
-    document.body.style.position = 'fixed'
-    document.body.style.top = `-${scrollY}px`
-    document.body.style.left = '0'
-    document.body.style.right = '0'
-    document.body.style.width = '100%'
+    const prevent = (e) => {
+      // allow scrolling INSIDE the overlay
+      if (overlayEl && overlayEl.contains(e.target)) return
+      e.preventDefault()
+    }
+
+    // lock page scroll
+    const prevOverflow = document.documentElement.style.overflow
+    const prevBodyOverflow = document.body.style.overflow
+
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+
+    // critical for iOS
+    document.addEventListener('touchmove', prevent, { passive: false })
 
     return () => {
-      // Unlock + restore scroll position
-      const y = Math.abs(parseInt(document.body.style.top || '0', 10)) || scrollY
-
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.left = ''
-      document.body.style.right = ''
-      document.body.style.width = ''
-
-      window.scrollTo(0, y)
+      document.removeEventListener('touchmove', prevent)
+      document.documentElement.style.overflow = prevOverflow
+      document.body.style.overflow = prevBodyOverflow
     }
   }, [open, isMobile])
+
 
   // -------- DESKTOP GSAP OPEN --------
   useEffect(() => {
@@ -189,23 +195,35 @@ export default function SectionBubbleMenu({
   if (isMobile) {
     return (
       <div
+        ref={mobileOverlayRef}
         onClick={onClose}
+        onTouchMove={(e) => e.stopPropagation()}  // ✅ keep touch events inside
         style={{
           position: 'fixed',
           inset: 0,
           zIndex: 3000,
+
+          // ✅ make THIS the scroll container
+          height: '100dvh',
+          width: '100vw',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+          touchAction: 'pan-y',
+
           background: mode === 'DNA' ? 'rgba(0,10,12,0.38)' : 'rgba(0,0,0,0.35)',
           backdropFilter: 'blur(6px)',
           WebkitBackdropFilter: 'blur(6px)',
+
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'center',
           paddingTop: 'calc(env(safe-area-inset-top) + 72px)',
           paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
-          overflowY: 'auto',
         }}
         aria-label="Section menu"
       >
+
         <div
           onClick={(e) => e.stopPropagation()}
           style={{
