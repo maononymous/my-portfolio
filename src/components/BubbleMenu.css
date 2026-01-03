@@ -153,6 +153,7 @@
 
 @media (max-width: 899px) {
   .bubble-menu-items {
+    touch-action: pan-y;
     align-items: flex-start;
     justify-content: center;
 

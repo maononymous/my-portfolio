@@ -53,6 +53,34 @@ export default function SectionBubbleMenu({
     )
   }, [open, isMobile, sections.length, MAX_ROT])
 
+  // ✅ Lock background scroll on mobile when menu is open (iOS-safe)
+  useEffect(() => {
+    if (!open) return
+    if (!isMobile) return
+
+    const scrollY = window.scrollY || window.pageYOffset
+
+    // Lock
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
+    document.body.style.width = '100%'
+
+    return () => {
+      // Unlock + restore scroll position
+      const y = Math.abs(parseInt(document.body.style.top || '0', 10)) || scrollY
+
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      document.body.style.width = ''
+
+      window.scrollTo(0, y)
+    }
+  }, [open, isMobile])
+
   // -------- DESKTOP GSAP OPEN --------
   useEffect(() => {
     if (!open) return
