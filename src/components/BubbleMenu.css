@@ -25,7 +25,8 @@
   background: rgba(0, 0, 0, 0.35);
 }
 
-/* ✅ GRID LAYOUT */
+/* ================= GRID ================= */
+
 .bubble-menu-items .pill-list {
   --cols: 3; /* overridden inline from JSX */
   --gap: clamp(12px, 2vw, 28px);
@@ -36,48 +37,40 @@
 
   width: 100%;
   max-width: 90vw;
-
-  /* NOTE: 1000vh will make it feel "infinite" and can cause weird mobile behavior.
-     Keeping it reasonable so the overlay can scroll naturally on mobile. */
   min-height: 70vh;
-  align-content: center;
 
   display: grid;
   grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
   gap: var(--gap);
+  align-content: center;
 
-  margin-left: auto;
-  margin-right: auto;
-
+  margin-inline: auto;
   pointer-events: auto;
   box-sizing: border-box;
 }
 
-/* Each li is a safe grid cell wrapper */
 .bubble-menu-items .pill-list .pill-col {
   display: flex;
   align-items: center;
   justify-content: center;
-
   padding: clamp(10px, 1.2vw, 22px);
   box-sizing: border-box;
 }
 
-/* ✅ Pill button */
-.bubble-menu-items .pill-link {
-  --pill-bg: #ffffff;
-  --pill-color: #111;
-  --item-rot: 0deg;
+/* ================= PILL ================= */
 
-  /* scale var (desktop hover / optional GSAP) */
+.bubble-menu-items .pill-link {
+  /* 🔁 INVERTED BASE STATE */
+  --pill-bg: rgba(255, 255, 255, 0.14); /* glass */
+  --pill-color: rgba(255, 255, 255, 0.92);
+  --item-rot: 0deg;
   --s: 1;
 
-  --hover-bg: rgba(255, 255, 255, 0.08);
-  --hover-color: var(--pill-color);
+  --hover-bg: #ffffff;
+  --hover-color: #111;
 
   width: 100%;
   max-width: 100%;
-
   min-height: clamp(56px, 10vh, 120px);
   padding: 0;
 
@@ -85,7 +78,7 @@
   font-weight: 500;
 
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
 
   background: var(--pill-bg);
   color: var(--pill-color);
@@ -98,8 +91,9 @@
   justify-content: center;
 
   position: relative;
+  cursor: pointer;
+  pointer-events: auto;
 
-  /* ✅ SINGLE SOURCE OF TRUTH for transform */
   transform-origin: 50% 50%;
   transform: rotate(var(--item-rot)) scale(var(--s));
 
@@ -107,24 +101,22 @@
     background 0.25s ease,
     color 0.25s ease,
     transform 0.18s ease,
-    border-color 0.25s ease;
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 
   will-change: transform;
-
-  /* allow wrapping rules on label to handle long titles */
   overflow: hidden;
-
-  pointer-events: auto;
-  cursor: pointer;
 }
 
-/* Desktop hover/active: adjust scale var only (do NOT set transform) */
+/* ================= DESKTOP HOVER ================= */
+
 @media (min-width: 900px) {
   .bubble-menu-items .pill-link:hover {
     --s: 1.04;
     background: var(--hover-bg);
     color: var(--hover-color);
-    border-color: rgba(255, 255, 255, 0.26);
+    border-color: #ffffff;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
   }
 
   .bubble-menu-items .pill-link:active {
@@ -132,22 +124,24 @@
   }
 }
 
-/* Active section styling */
+/* ================= ACTIVE ================= */
+
 .bubble-menu-items .pill-link.active {
-  border-color: rgba(255, 255, 255, 0.34);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  background: #ffffff;
+  color: #111;
+  border-color: #ffffff;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
 }
 
-/* Two-line clamp label */
+/* ================= LABEL ================= */
+
 .bubble-menu-items .pill-link .pill-label {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2; /* max 2 lines */
-  overflow: hidden;
+  -webkit-line-clamp: 2;
 
   white-space: normal;
-  text-overflow: unset;
-
+  overflow: hidden;
   max-width: 100%;
   padding: 0 14px;
   text-align: center;
@@ -155,7 +149,8 @@
   line-height: 1.15;
 }
 
-/* Mobile: single column + scrollable overlay */
+/* ================= MOBILE ================= */
+
 @media (max-width: 899px) {
   .bubble-menu-items {
     align-items: flex-start;
@@ -174,10 +169,8 @@
     --gap: 14px;
 
     width: min(92vw, 520px);
-    margin: 0 auto;
-
+    margin-inline: auto;
     padding: 0 16px;
-    box-sizing: border-box;
 
     min-height: auto;
     align-content: start;
@@ -186,12 +179,9 @@
   .bubble-menu-items .pill-link {
     min-height: 68px;
     font-size: 18px;
-
-    /* keep rotation; just ensure scale is normal on mobile */
     --s: 1 !important;
   }
 
-  /* keep the scale interaction on tap without breaking rotation */
   .bubble-menu-items .pill-link:hover {
     --s: 1.03;
     background: var(--hover-bg);

@@ -376,11 +376,9 @@ const App = () => {
           sections={sections}
           currentIndex={currentIndex}
           mode={mode}
-          onSelectIndex={(i) => {
-            setMenuOpen(false)
-            jumpToIndex(i)
-          }}
+          onSelectIndex={(idx) => setCurrentIndex(idx)}  // or your jump transition
         />
+
 
         {/* Text stays as-is; DNA gating is via dnaPhase */}
         {sections.map(

@@ -1,5 +1,4 @@
-// src/components/SectionBubbleMenu.jsx
-import { useMemo, useRef, useEffect } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import './BubbleMenu.css'
 
@@ -12,105 +11,251 @@ export default function SectionBubbleMenu({
   mode = 'Planet',
   animationEase = 'back.out(1.5)',
   animationDuration = 0.5,
-  staggerDelay = 0.10,
+  staggerDelay = 0.12,
 }) {
   const overlayRef = useRef(null)
-  const pillRefs = useRef([]) // buttons
-  const labelRefs = useRef([]) // spans
+  const bubblesRef = useRef([])
+  const labelRefs = useRef([])
 
-  const isMobile =
-    typeof window !== 'undefined'
-      ? window.matchMedia('(max-width: 899px)').matches
-      : false
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 899px)').matches : false
+  )
 
-  // grid columns (mobile CSS forces 1 col)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(max-width: 899px)')
+    const handler = () => setIsMobile(mq.matches)
+    handler()
+    mq.addEventListener?.('change', handler)
+    return () => mq.removeEventListener?.('change', handler)
+  }, [])
+
+  // Desktop grid columns (mobile uses simple list menu)
   const cols = useMemo(() => {
     const n = Math.max(1, sections.length)
     return Math.min(5, Math.ceil(Math.sqrt(n)))
   }, [sections.length])
 
-  // rotation range (reduce automatically when grid is dense)
+  // Rotation range (desktop only)
   const MAX_ROT = useMemo(() => {
-    if (isMobile) return 0
     if (cols >= 5) return 15
     if (cols === 4) return 22
     if (cols === 3) return 30
-    return 45
-  }, [cols, isMobile])
+    return 40
+  }, [cols])
 
-  // stable rotations for THIS open (no jitter while open)
+  // Stable random rotations while menu is open (desktop only)
   const rotations = useMemo(() => {
-    const n = sections.length
-    return Array.from({ length: n }, () =>
+    if (!open) return []
+    if (isMobile) return []
+    return Array.from({ length: sections.length }, () =>
       Math.round((Math.random() * 2 - 1) * MAX_ROT)
     )
-    // IMPORTANT: depend on open so it re-randomizes each open
-  }, [sections.length, MAX_ROT, open])
+  }, [open, isMobile, sections.length, MAX_ROT])
 
-  // only mount when open (this eliminates "display:none" headaches)
-  if (!open) return null
-
-  // ✅ Desktop entrance animation using CSS var --s (scale)
+  // -------- DESKTOP GSAP OPEN --------
   useEffect(() => {
-    const pills = pillRefs.current.filter(Boolean)
+    if (!open) return
+    if (isMobile) return
+
+    const overlay = overlayRef.current
+    if (!overlay) return
+
+    const bubbles = bubblesRef.current.filter(Boolean)
     const labels = labelRefs.current.filter(Boolean)
-    if (!pills.length) return
 
-    // Always force overlay visible when mounted
-    if (overlayRef.current) overlayRef.current.style.display = 'flex'
+    // show overlay
+    gsap.set(overlay, { display: 'flex' })
 
-    // Mobile: no GSAP, just ensure everything is visible
-    if (isMobile) {
-      pills.forEach((p) => p.style.setProperty('--s', '1'))
-      labels.forEach((l) => {
-        l.style.opacity = '1'
-        l.style.visibility = 'visible'
-        l.style.transform = 'none'
+    const run = () => {
+      const b = bubblesRef.current.filter(Boolean)
+      const l = labelRefs.current.filter(Boolean)
+      if (!b.length) return
+
+      gsap.killTweensOf([...b, ...l])
+      gsap.set(b, {
+        scale: 0,
+        rotation: (i) => rotations[i] ?? 0,
+        transformOrigin: '50% 50%',
       })
+      gsap.set(l, { y: 24, autoAlpha: 0 })
+
+      b.forEach((bubble, i) => {
+        const delay = i * staggerDelay + gsap.utils.random(-0.05, 0.05)
+        const tl = gsap.timeline({ delay })
+
+        tl.to(bubble, {
+          scale: 1,
+          rotation: rotations[i] ?? 0,
+          duration: animationDuration,
+          ease: animationEase,
+        })
+
+        if (l[i]) {
+          tl.to(
+            l[i],
+            { y: 0, autoAlpha: 1, duration: animationDuration, ease: 'power3.out' },
+            `-=${animationDuration * 0.9}`
+          )
+        }
+      })
+    }
+
+    // If refs aren’t ready on first paint, retry next frame
+    if (!bubbles.length) requestAnimationFrame(run)
+    else run()
+
+    return () => {
+      gsap.killTweensOf([
+        ...bubblesRef.current.filter(Boolean),
+        ...labelRefs.current.filter(Boolean),
+      ])
+    }
+  }, [open, isMobile, rotations, animationEase, animationDuration, staggerDelay])
+
+  // -------- DESKTOP GSAP CLOSE --------
+  useEffect(() => {
+    if (open) return
+    if (isMobile) return
+
+    const overlay = overlayRef.current
+    if (!overlay) return
+
+    const bubbles = bubblesRef.current.filter(Boolean)
+    const labels = labelRefs.current.filter(Boolean)
+
+    if (!bubbles.length) {
+      overlay.style.display = 'none'
       return
     }
 
-    gsap.killTweensOf([...pills, ...labels])
-
-    // Start hidden using CSS var (no transform override)
-    pills.forEach((p) => p.style.setProperty('--s', '0'))
-    gsap.set(labels, { y: 24, autoAlpha: 0 })
-
-    pills.forEach((pill, i) => {
-      const delay = i * staggerDelay + gsap.utils.random(-0.05, 0.05)
-      const tl = gsap.timeline({ delay })
-
-      tl.to(pill, {
-        duration: animationDuration,
-        ease: animationEase,
-        // animate CSS variable, not transform:
-        onUpdate: function () {},
-        '--s': 1,
-      })
-
-      if (labels[i]) {
-        tl.to(
-          labels[i],
-          { y: 0, autoAlpha: 1, duration: animationDuration, ease: 'power3.out' },
-          `-=${animationDuration * 0.9}`
-        )
-      }
+    gsap.killTweensOf([...bubbles, ...labels])
+    gsap.to(labels, { y: 24, autoAlpha: 0, duration: 0.2, ease: 'power3.in' })
+    gsap.to(bubbles, {
+      scale: 0,
+      duration: 0.2,
+      ease: 'power3.in',
+      onComplete: () => {
+        overlay.style.display = 'none'
+      },
     })
+  }, [open, isMobile])
 
-    return () => gsap.killTweensOf([...pills, ...labels])
-  }, [isMobile, rotations, animationEase, animationDuration, staggerDelay])
+  // ESC close
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose?.()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onClose])
 
-  const pillBg = mode === 'DNA' ? 'rgba(7,22,24,0.82)' : 'rgba(8,8,10,0.82)'
-  const pillColor = mode === 'DNA' ? 'rgba(214,207,196,0.95)' : 'rgba(255,255,255,0.92)'
+  if (!open) return null
 
+  // Simple mobile sheet theme (independent of BubbleMenu.css)
+  const sheetBg = mode === 'DNA' ? 'rgba(7,22,24,0.86)' : 'rgba(8,8,10,0.86)'
+  const textColor = mode === 'DNA' ? 'rgba(214,207,196,0.95)' : 'rgba(255,255,255,0.92)'
+
+  // ✅ MOBILE: simple list (stable, always visible)
+  if (isMobile) {
+    return (
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 3000,
+          background: mode === 'DNA' ? 'rgba(0,10,12,0.38)' : 'rgba(0,0,0,0.35)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          paddingTop: 'calc(env(safe-area-inset-top) + 72px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
+          overflowY: 'auto',
+        }}
+        aria-label="Section menu"
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: 'min(92vw, 560px)',
+            borderRadius: 16,
+            border: '1px solid rgba(255,255,255,0.12)',
+            background: sheetBg,
+            padding: 12,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '8px 10px 12px',
+              color: textColor,
+              fontWeight: 600,
+            }}
+          >
+            <span>Sections</span>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                background: 'transparent',
+                border: '1px solid rgba(255,255,255,0.14)',
+                color: textColor,
+                borderRadius: 10,
+                padding: '8px 10px',
+                cursor: 'pointer',
+              }}
+            >
+              Close
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gap: 10 }}>
+            {sections.map((s, idx) => (
+              <button
+                key={s.id ?? idx}
+                type="button"
+                onClick={() => {
+                  onSelectIndex?.(idx)
+                  onClose?.()
+                }}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '14px 14px',
+                  borderRadius: 12,
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  background:
+                    idx === currentIndex
+                      ? 'rgba(232,236,255,0.12)'
+                      : 'rgba(255,255,255,0.06)',
+                  color: textColor,
+                  cursor: 'pointer',
+                }}
+              >
+                {s.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ✅ DESKTOP: pill menu (uses BubbleMenu.css)
   return (
     <div
       ref={overlayRef}
       className={`bubble-menu-items fixed ${
         mode === 'DNA' ? 'bubble-menu-items--dna' : 'bubble-menu-items--planet'
       }`}
+      aria-hidden={!open}
       onClick={onClose}
-      aria-label="Section navigation overlay"
     >
       <ul
         className="pill-list"
@@ -119,45 +264,33 @@ export default function SectionBubbleMenu({
         style={{ '--cols': cols }}
         onClick={(e) => e.stopPropagation()}
       >
-        {sections.map((s, idx) => {
-          const rot = rotations[idx] ?? 0
-          return (
-            <li key={s.id ?? idx} role="none" className="pill-col">
-              <button
-                type="button"
-                className={`pill-link ${idx === currentIndex ? 'active' : ''}`}
-                role="menuitem"
+        {sections.map((s, idx) => (
+          <li key={s.id ?? idx} role="none" className="pill-col">
+            <button
+              type="button"
+              className={`pill-link ${idx === currentIndex ? 'active' : ''}`}
+              role="menuitem"
+              style={{ '--item-rot': `${rotations[idx] ?? 0}deg` }}
+              ref={(el) => {
+                if (el) bubblesRef.current[idx] = el
+              }}
+              onClick={() => {
+                onSelectIndex?.(idx)
+                onClose?.()
+              }}
+              title={s.title}
+            >
+              <span
+                className="pill-label"
                 ref={(el) => {
-                  if (el) pillRefs.current[idx] = el
+                  if (el) labelRefs.current[idx] = el
                 }}
-                style={{
-                  '--pill-bg': pillBg,
-                  '--pill-color': pillColor,
-                  '--hover-bg':
-                    mode === 'DNA'
-                      ? 'rgba(159,211,199,0.18)'
-                      : 'rgba(232,236,255,0.16)',
-                  '--hover-color': pillColor,
-                  '--item-rot': `${rot}deg`,
-                }}
-                onClick={() => {
-                  onSelectIndex?.(idx)
-                  onClose?.()
-                }}
-                title={s.title}
               >
-                <span
-                  className="pill-label"
-                  ref={(el) => {
-                    if (el) labelRefs.current[idx] = el
-                  }}
-                >
-                  {s.title}
-                </span>
-              </button>
-            </li>
-          )
-        })}
+                {s.title}
+              </span>
+            </button>
+          </li>
+        ))}
       </ul>
     </div>
   )
