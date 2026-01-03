@@ -162,29 +162,24 @@
 }
 
 
-/* Mobile: single column + scrollable overlay (prevents "blur only") */
+/* Mobile: single column + FORCE pills visible (override GSAP inline transforms) */
 @media (max-width: 899px) {
   .bubble-menu-items{
     align-items: flex-start;
     justify-content: center;
 
-    /* ✅ critical: allow content to be visible + scrollable */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
 
-    /* ✅ keep content below your top-left orb + respect notch */
     padding-top: calc(env(safe-area-inset-top) + 90px);
     padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
-
-    /* optional but helps: avoid sideways scroll */
-    overflow-x: hidden;
   }
 
   .bubble-menu-items .pill-list{
     --cols: 1 !important;
     --gap: 14px;
 
-    /* ✅ center the list and prevent it from going too wide */
     width: min(92vw, 520px);
     margin: 0 auto;
 
@@ -193,22 +188,34 @@
   }
 
   .bubble-menu-items .pill-link{
-    /* ✅ keep the pill itself sensible on mobile */
     min-height: 68px;
     font-size: 18px;
 
     display: flex;
     align-items: center;
     justify-content: center;
+
+    /* ✅ GSAP sometimes leaves scale(0) inline — override it */
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .bubble-menu-items .pill-link .pill-label{
+    /* ✅ GSAP autoAlpha can leave labels invisible */
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
   }
 
   .bubble-menu-items .pill-link:hover {
-    transform: scale(1.03);
+    transform: scale(1.03) !important;
     background: var(--hover-bg);
     color: var(--hover-color);
   }
 
   .bubble-menu-items .pill-link:active {
-    transform: scale(0.98);
+    transform: scale(0.98) !important;
   }
 }
+
