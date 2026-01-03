@@ -2,15 +2,15 @@
 
 /* Overlay container */
 .bubble-menu-items {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  display: none;            /* GSAP toggles to flex */
+  display: flex;            /* GSAP toggles to flex */
   align-items: center;
   justify-content: center;
-  pointer-events: none;
+  pointer-events: auto;
   z-index: 2000;            /* above canvases */
   background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
 }
 
 .bubble-menu-items.fixed {
