@@ -103,61 +103,93 @@ export default function SectionBubbleMenu({
 
   // GSAP open/close animation (your existing behavior)
   useEffect(() => {
-    const overlay = overlayRef.current
-    const bubbles = bubblesRef.current.filter(Boolean)
-    const labels = labelRefs.current.filter(Boolean)
+  const overlay = overlayRef.current
+  if (!overlay) return
 
-    if (!overlay) return
+  const bubbles = bubblesRef.current.filter(Boolean)
+  const labels = labelRefs.current.filter(Boolean)
 
-    if (open) {
-      gsap.set(overlay, { display: 'flex' })
+  const isMobile = window.matchMedia('(max-width: 899px)').matches
 
-      if (!bubbles.length) return
+  if (open) {
+    gsap.set(overlay, { display: 'flex' })
 
+    // ✅ MOBILE: skip animation completely, force visible
+    if (isMobile) {
       gsap.killTweensOf([...bubbles, ...labels])
-      gsap.set(bubbles, { scale: 0, rotation: (i) => menuItems[i]?.rotation ?? 0, transformOrigin: '50% 50%' })
-      gsap.set(labels, { y: 24, autoAlpha: 0 })
 
-      bubbles.forEach((bubble, i) => {
-        const delay = i * staggerDelay + gsap.utils.random(-0.05, 0.05)
-        const tl = gsap.timeline({ delay })
-
-        tl.to(bubble, {
-          scale: 1,
-          rotation: menuItems[i]?.rotation ?? 0,
-          duration: animationDuration,
-          ease: animationEase,
-        })
-
-        if (labels[i]) {
-          tl.to(
-            labels[i],
-            {
-              y: 0,
-              autoAlpha: 1,
-              duration: animationDuration,
-              ease: 'power3.out',
-            },
-            `-=${animationDuration * 0.9}`
-          )
-        }
+      gsap.set(bubbles, {
+        scale: 1,
+        rotation: (i) => menuItems[i]?.rotation ?? 0,
+        transformOrigin: '50% 50%',
+        clearProps: 'transform', // important: removes stale scale(0)
       })
-    } else {
-      if (!bubbles.length) {
-        gsap.set(overlay, { display: 'none' })
-        return
-      }
 
-      gsap.killTweensOf([...bubbles, ...labels])
-      gsap.to(labels, { y: 24, autoAlpha: 0, duration: 0.2, ease: 'power3.in' })
-      gsap.to(bubbles, {
-        scale: 0,
-        duration: 0.2,
-        ease: 'power3.in',
-        onComplete: () => gsap.set(overlay, { display: 'none' }),
+      gsap.set(labels, {
+        y: 0,
+        autoAlpha: 1,
+        clearProps: 'transform,opacity',
       })
+
+      return
     }
-  }, [open, animationEase, animationDuration, staggerDelay])
+
+    // ✅ DESKTOP: keep your animation
+    if (!bubbles.length) return
+
+    gsap.killTweensOf([...bubbles, ...labels])
+    gsap.set(bubbles, {
+      scale: 0,
+      rotation: (i) => menuItems[i]?.rotation ?? 0,
+      transformOrigin: '50% 50%',
+    })
+    gsap.set(labels, { y: 24, autoAlpha: 0 })
+
+    bubbles.forEach((bubble, i) => {
+      const delay = i * staggerDelay + gsap.utils.random(-0.05, 0.05)
+      const tl = gsap.timeline({ delay })
+
+      tl.to(bubble, {
+        scale: 1,
+        rotation: menuItems[i]?.rotation ?? 0,
+        duration: animationDuration,
+        ease: animationEase,
+      })
+
+      if (labels[i]) {
+        tl.to(
+          labels[i],
+          { y: 0, autoAlpha: 1, duration: animationDuration, ease: 'power3.out' },
+          `-=${animationDuration * 0.9}`
+        )
+      }
+    })
+
+    return
+  }
+
+  // ✅ CLOSE
+  if (isMobile) {
+    // instant close on mobile
+    gsap.set(overlay, { display: 'none' })
+    return
+  }
+
+  if (!bubbles.length) {
+    gsap.set(overlay, { display: 'none' })
+    return
+  }
+
+  gsap.killTweensOf([...bubbles, ...labels])
+  gsap.to(labels, { y: 24, autoAlpha: 0, duration: 0.2, ease: 'power3.in' })
+  gsap.to(bubbles, {
+    scale: 0,
+    duration: 0.2,
+    ease: 'power3.in',
+    onComplete: () => gsap.set(overlay, { display: 'none' }),
+  })
+}, [open, menuItems, animationEase, animationDuration, staggerDelay])
+
 
   useEffect(() => {
     if (!open) return
