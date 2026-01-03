@@ -1,0 +1,195 @@
+/* src/components/BubbleMenu.css */
+
+/* Overlay container */
+.bubble-menu-items {
+  position: absolute;
+  inset: 0;
+  display: none;            /* GSAP toggles to flex */
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2000;            /* above canvases */
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+}
+
+.bubble-menu-items.fixed {
+  position: fixed;
+}
+
+.bubble-menu-items--dna{
+  background: rgba(0,10,12,0.38);
+}
+
+.bubble-menu-items--planet{
+  background: rgba(0,0,0,0.35);
+}
+
+/* ✅ GRID LAYOUT THAT ALWAYS FITS (no overlap) */
+.bubble-menu-items .pill-list{
+  --cols: 3;                /* overridden inline from JSX */
+  --gap: clamp(12px, 2vw, 28px);
+
+  list-style: none;
+  margin: 0;
+  padding: 0 16px;
+
+  width: 100%;
+  max-width: 90vw;
+
+  min-height: 1000vh;
+  align-content: center;
+
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: var(--gap);
+
+  margin-left: auto;
+  margin-right: auto;
+
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+
+/* Each li is just a wrapper; button is the visual element */
+/* Make each grid cell a safe box that prevents overlap */
+.bubble-menu-items .pill-list .pill-col{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* safety padding inside each cell */
+  padding: clamp(10px, 1.2vw, 22px);
+  box-sizing: border-box;
+}
+
+
+/* ✅ Pill button sizing tuned to fit viewport height automatically */
+.bubble-menu-items .pill-link{
+  --pill-bg: #ffffff;
+  --pill-color: #111;
+  --item-rot: 0deg;
+  --hover-bg: rgba(255,255,255,0.08);
+  --hover-color: var(--pill-color);
+
+  width: 100%;
+  max-width: 100%;
+  transform-origin: 50% 50%;
+
+  /* Key: stays readable and fits screen */
+  min-height: clamp(56px, 10vh, 120px);
+
+  /* No extra padding needed because min-height handles size */
+  padding: 0;
+
+  font-size: clamp(14px, 6cqw, 28px);
+  font-weight: 500;
+
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.16);
+
+  background: var(--pill-bg);
+  color: var(--pill-color);
+
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.18s ease,
+    border-color 0.25s ease;
+
+  will-change: transform;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Desktop rotation / hover behavior */
+@media (min-width: 900px) {
+  .bubble-menu-items .pill-link:hover {
+    transform: rotate(var(--item-rot)) scale(1.04);
+    background: var(--hover-bg);
+    color: var(--hover-color);
+    border-color: rgba(255,255,255,0.26);
+  }
+
+  .bubble-menu-items .pill-link:active {
+    transform: rotate(var(--item-rot)) scale(0.97);
+  }
+}
+
+/* Active section styling */
+.bubble-menu-items .pill-link.active{
+  border-color: rgba(255,255,255,0.34);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+}
+
+.bubble-menu-items .pill-link .pill-label{
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;     /* max 2 lines */
+  overflow: hidden;
+
+  white-space: normal;       /* allow wrapping */
+  text-overflow: unset;
+
+  max-width: 100%;
+  padding: 0 14px;
+  text-align: center;
+
+  line-height: 1.15;
+}
+
+
+.bubble-menu-items .pill-label{
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-inline: 12px;
+  text-align: center;
+}
+
+
+/* Mobile: single column so it never gets cramped */
+@media (max-width: 899px) {
+  .bubble-menu-items{
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 120px;
+  }
+
+  .bubble-menu-items .pill-list{
+    --cols: 1 !important;
+    --gap: 14px;
+    padding: 0 16px;
+  }
+
+  .bubble-menu-items .pill-link{
+    /* ensure the label can center properly */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .bubble-menu-items .pill-link:hover {
+    transform: scale(1.03);
+    background: var(--hover-bg);
+    color: var(--hover-color);
+  }
+
+  .bubble-menu-items .pill-link:active {
+    transform: scale(0.98);
+  }
+}

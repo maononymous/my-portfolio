@@ -7,10 +7,11 @@ import GalaxyOverlay from './components/GalaxyOverlay'
 import sections from './data/sections'
 import ClickSpark from './components/effects/ClickSpark'
 import Galaxy from './components/backgrounds/Galaxy'
-import { isTypingTarget } from "./utils/isTypingTarget"
-
-// NEW
+import { isTypingTarget } from './utils/isTypingTarget'
+import SectionNavButton from './components/SectionNavButton'
+import SectionMenu from './components/SectionMenu'
 import DNAMode from './components/three/DNAMode'
+import SectionBubbleMenu from './components/SectionBubbleMenu'
 
 const SCROLL_THRESHOLD = 40
 
@@ -22,12 +23,48 @@ const App = () => {
   const [isCloudVisible, setIsCloudVisible] = useState(false)
   const [cloudDirection, setCloudDirection] = useState('down')
   const [lastScrollDir, setLastScrollDir] = useState('down')
-
-  // NEW: DNA text gating
-  const [dnaPhase, setDnaPhase] = useState('revealed') // 'transitioning' | 'activated' | 'revealed'
-
+  const [dnaPhase, setDnaPhase] = useState('revealed')
   const sectionRefs = useRef([])
   const [skills, setSkills] = useState([])
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  /* ---------------- MENU SECTION ---------------- */
+
+  const jumpToIndex = (targetIndex) => {
+    if (scrolling) return
+    if (targetIndex === currentIndex) return
+    if (targetIndex < 0 || targetIndex >= sections.length) return
+
+    const direction = targetIndex > currentIndex ? 'down' : 'up'
+    setLastScrollDir(direction)
+
+    // Planet: keep your exact transition
+    if (mode === 'Planet') {
+      setCloudDirection(direction)
+      setScrolling(true)
+      setIsCloudVisible('entry')
+
+      setTimeout(() => {
+        setCurrentIndex(targetIndex)
+        setPlanetId((prev) => (prev % 5) + 1) // if you want this to tick once per jump
+        setSkills([])
+        setIsCloudVisible('exit')
+      }, 800)
+
+      setTimeout(() => {
+        setIsCloudVisible(false)
+        setScrolling(false)
+      }, 2000)
+
+      return
+    }
+
+    // DNA: keep your exact behavior
+    setDnaPhase('transitioning')
+    setScrolling(true)
+    setCurrentIndex(targetIndex)
+    setTimeout(() => setScrolling(false), 900)
+  }
 
   /* ---------------- SCROLL HANDLING ---------------- */
 
@@ -326,6 +363,24 @@ const App = () => {
 
         {/* Toggle stays global */}
         <ModeToggleButton mode={mode} setMode={setMode} />
+
+        <SectionNavButton
+          mode={mode}
+          planetId={planetId}
+          onClick={() => setMenuOpen(true)}
+        />
+
+        <SectionBubbleMenu
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          sections={sections}
+          currentIndex={currentIndex}
+          mode={mode}
+          onSelectIndex={(i) => {
+            setMenuOpen(false)
+            jumpToIndex(i)
+          }}
+        />
 
         {/* Text stays as-is; DNA gating is via dnaPhase */}
         {sections.map(
