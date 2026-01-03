@@ -1,32 +1,7 @@
 // src/components/SectionBubbleMenu.jsx
-import { useRef, useEffect, useMemo } from 'react'
+import { useRef, useEffect, useMemo, useState } from 'react'
 import { gsap } from 'gsap'
 import './BubbleMenu.css'
-
-function fitLabelToPill(labelEl, pillEl, opts = {}) {
-  const {
-    maxPx = 34,
-    minPx = 12,
-    step = 1,
-    safetyPadding = 24, // accounts for left+right padding
-  } = opts
-
-  if (!labelEl || !pillEl) return
-
-  // Reset to max first
-  let size = maxPx
-  labelEl.style.fontSize = `${size}px`
-
-  // Available width inside pill
-  const available = Math.max(0, pillEl.clientWidth - safetyPadding)
-
-  // Shrink until it fits
-  // scrollWidth reflects rendered width of the label
-  while (size > minPx && labelEl.scrollWidth > available) {
-    size -= step
-    labelEl.style.fontSize = `${size}px`
-  }
-}
 
 export default function SectionBubbleMenu({
   open,
@@ -42,102 +17,62 @@ export default function SectionBubbleMenu({
   const overlayRef = useRef(null)
   const bubblesRef = useRef([]) // buttons
   const labelRefs = useRef([])  // spans
-  const isMobile = window.innerWidth < 900
 
-  const menuItems = useMemo(() => {
-    return sections.map((s, i) => ({
-      label: s.title,
-      ariaLabel: s.title,
-      rotation: isMobile ? Math.round((Math.random() * 40) - 20) : Math.round((Math.random() * 45) - 22.5),
-      hoverStyles:
-        mode === 'DNA'
-          ? { bgColor: 'rgba(159,211,199,0.18)', textColor: 'rgba(214,207,196,0.95)' }
-          : { bgColor: 'rgba(232,236,255,0.16)', textColor: 'rgba(255,255,255,0.92)' },
-    }))
-  }, [sections, mode])
+  // ✅ robust mobile detection (updates on rotate / resize)
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 899px)').matches : false
+  )
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(max-width: 899px)')
+    const handler = () => setIsMobile(mq.matches)
+    handler()
+    mq.addEventListener?.('change', handler)
+    return () => mq.removeEventListener?.('change', handler)
+  }, [])
+
+  // columns for desktop grid; CSS forces 1 col on mobile anyway
   const cols = useMemo(() => {
     const n = Math.max(1, sections.length)
     return Math.min(5, Math.ceil(Math.sqrt(n)))
   }, [sections.length])
 
+  // random rotation range (tune MAX if you want)
+  const MAX_ROT = useMemo(() => (cols >= 5 ? 15 : cols === 4 ? 22 : cols === 3 ? 30 : 45), [cols])
+
+  // ✅ rotations generated once per open (so they stay stable while open)
+  const menuItems = useMemo(() => {
+    return sections.map((s) => ({
+      label: s.title,
+      ariaLabel: s.title,
+      rotation: Math.round((Math.random() * 2 - 1) * MAX_ROT),
+      hoverStyles:
+        mode === 'DNA'
+          ? { bgColor: 'rgba(159,211,199,0.18)', textColor: 'rgba(214,207,196,0.95)' }
+          : { bgColor: 'rgba(232,236,255,0.16)', textColor: 'rgba(255,255,255,0.92)' },
+    }))
+    // intentionally include open so you get fresh randomness each open
+  }, [sections, mode, MAX_ROT, open])
+
   const pillBg = mode === 'DNA' ? 'rgba(7,22,24,0.82)' : 'rgba(8,8,10,0.82)'
   const pillColor = mode === 'DNA' ? 'rgba(214,207,196,0.95)' : 'rgba(255,255,255,0.92)'
 
-  // ✅ Fit text whenever menu opens, and whenever pills resize
+  // ✅ Desktop GSAP only. Mobile = no GSAP (instant render).
   useEffect(() => {
     if (!open) return
+    if (isMobile) return
 
-    const pills = bubblesRef.current.filter(Boolean)
+    const overlay = overlayRef.current
+    if (!overlay) return
+
+    const bubbles = bubblesRef.current.filter(Boolean)
     const labels = labelRefs.current.filter(Boolean)
-    if (!pills.length || !labels.length) return
-
-    const doFitAll = () => {
-      for (let i = 0; i < pills.length; i++) {
-        const pill = pills[i]
-        const label = labels[i]
-        if (!pill || !label) continue
-
-        // Choose a max font based on pill size (helps big pills stay bold)
-        const maxPx = Math.min(40, Math.max(18, Math.floor(pill.clientWidth / 9)))
-        fitLabelToPill(label, pill, { maxPx, minPx: 12, step: 1, safetyPadding: 28 })
-      }
-    }
-
-    // Fit immediately (next frame ensures layout settled)
-    const raf = requestAnimationFrame(doFitAll)
-
-    // Refit on resize of each pill
-    const ro = new ResizeObserver(() => doFitAll())
-    pills.forEach((p) => ro.observe(p))
-
-    // Also refit on window resize (belt + suspenders)
-    window.addEventListener('resize', doFitAll)
-
-    return () => {
-      cancelAnimationFrame(raf)
-      ro.disconnect()
-      window.removeEventListener('resize', doFitAll)
-    }
-  }, [open, sections.length, cols])
-
-  // GSAP open/close animation (your existing behavior)
-  useEffect(() => {
-  const overlay = overlayRef.current
-  if (!overlay) return
-
-  const bubbles = bubblesRef.current.filter(Boolean)
-  const labels = labelRefs.current.filter(Boolean)
-
-  const isMobile = window.matchMedia('(max-width: 899px)').matches
-
-  if (open) {
-    gsap.set(overlay, { display: 'flex' })
-
-    // ✅ MOBILE: skip animation completely, force visible
-    if (isMobile) {
-      gsap.killTweensOf([...bubbles, ...labels])
-
-      gsap.set(bubbles, {
-        scale: 1,
-        rotation: (i) => menuItems[i]?.rotation ?? 0,
-        transformOrigin: '50% 50%',
-        clearProps: 'transform', // important: removes stale scale(0)
-      })
-
-      gsap.set(labels, {
-        y: 0,
-        autoAlpha: 1,
-        clearProps: 'transform,opacity',
-      })
-
-      return
-    }
-
-    // ✅ DESKTOP: keep your animation
     if (!bubbles.length) return
 
+    gsap.set(overlay, { display: 'flex' })
     gsap.killTweensOf([...bubbles, ...labels])
+
     gsap.set(bubbles, {
       scale: 0,
       rotation: (i) => menuItems[i]?.rotation ?? 0,
@@ -165,31 +100,47 @@ export default function SectionBubbleMenu({
       }
     })
 
-    return
-  }
+    return () => {
+      gsap.killTweensOf([...bubbles, ...labels])
+    }
+  }, [open, isMobile, menuItems, animationEase, animationDuration, staggerDelay])
 
-  // ✅ CLOSE
-  if (isMobile) {
-    // instant close on mobile
-    gsap.set(overlay, { display: 'none' })
-    return
-  }
+  // ✅ Close behavior: desktop animates out; mobile just hides
+  useEffect(() => {
+    const overlay = overlayRef.current
+    if (!overlay) return
 
-  if (!bubbles.length) {
-    gsap.set(overlay, { display: 'none' })
-    return
-  }
+    if (open) {
+      // ensure visible (especially on mobile)
+      overlay.style.display = 'flex'
+      return
+    }
 
-  gsap.killTweensOf([...bubbles, ...labels])
-  gsap.to(labels, { y: 24, autoAlpha: 0, duration: 0.2, ease: 'power3.in' })
-  gsap.to(bubbles, {
-    scale: 0,
-    duration: 0.2,
-    ease: 'power3.in',
-    onComplete: () => gsap.set(overlay, { display: 'none' }),
-  })
-}, [open, menuItems, animationEase, animationDuration, staggerDelay])
+    // closed
+    if (isMobile) {
+      overlay.style.display = 'none'
+      return
+    }
 
+    const bubbles = bubblesRef.current.filter(Boolean)
+    const labels = labelRefs.current.filter(Boolean)
+
+    if (!bubbles.length) {
+      overlay.style.display = 'none'
+      return
+    }
+
+    gsap.killTweensOf([...bubbles, ...labels])
+    gsap.to(labels, { y: 24, autoAlpha: 0, duration: 0.2, ease: 'power3.in' })
+    gsap.to(bubbles, {
+      scale: 0,
+      duration: 0.2,
+      ease: 'power3.in',
+      onComplete: () => {
+        overlay.style.display = 'none'
+      },
+    })
+  }, [open, isMobile])
 
   useEffect(() => {
     if (!open) return
@@ -204,6 +155,8 @@ export default function SectionBubbleMenu({
       className={`bubble-menu-items fixed ${mode === 'DNA' ? 'bubble-menu-items--dna' : 'bubble-menu-items--planet'}`}
       aria-hidden={!open}
       onClick={onClose}
+      // ✅ mobile: show/hide via normal style (no GSAP dependency)
+      style={isMobile ? { display: open ? 'flex' : 'none' } : undefined}
     >
       <ul
         className="pill-list"
@@ -219,11 +172,13 @@ export default function SectionBubbleMenu({
               className={`pill-link ${idx === currentIndex ? 'active' : ''}`}
               aria-label={item.ariaLabel || item.label}
               style={{
-                '--item-rot': `${item.rotation ?? 0}deg`,
                 '--pill-bg': pillBg,
                 '--pill-color': pillColor,
                 '--hover-bg': item.hoverStyles?.bgColor || 'rgba(255,255,255,0.08)',
                 '--hover-color': item.hoverStyles?.textColor || pillColor,
+
+                // ✅ Mobile: apply rotation directly (no GSAP transforms involved)
+                ...(isMobile ? { transform: `rotate(${item.rotation}deg)` } : null),
               }}
               ref={(el) => {
                 if (el) bubblesRef.current[idx] = el
