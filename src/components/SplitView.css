@@ -1,0 +1,108 @@
+.splitview-root {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.splitview-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  will-change: clip-path;
+}
+
+.splitview-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  transform: translateX(-50%);
+  z-index: 9999;
+  cursor: col-resize;
+}
+
+.splitview-divider-hit {
+  width: 18px;   /* bigger hit area */
+  height: 100%;
+  margin-left: -9px;
+  background: rgba(0, 0, 0, 0);
+  position: relative;
+}
+
+/* Visible bar (glow) */
+.splitview-divider-hit::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 100%;
+  width: 5px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.92);
+
+  /* subtle glow */
+  box-shadow:
+    0 0 10px rgba(255, 255, 255, 0.22),
+    0 0 22px rgba(255, 255, 255, 0.12);
+}
+
+/* Center “handle” knob */
+.splitview-divider-hit::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+
+  background: rgba(0, 0, 0, 0.92);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+
+  /* make it feel interactive */
+  box-shadow:
+    0 0 12px rgba(255, 255, 255, 0.25),
+    0 0 26px rgba(255, 255, 255, 0.12);
+}
+
+/* Optional: little “grip” lines inside the knob */
+.splitview-divider-hit::before {
+  /* keep existing properties above */
+  background-image:
+    linear-gradient(to right,
+      rgba(255,255,255,0.0) 0%,
+      rgba(255,255,255,0.0) 38%,
+      rgba(255,255,255,0.45) 38%,
+      rgba(255,255,255,0.45) 44%,
+      rgba(255,255,255,0.0) 44%,
+      rgba(255,255,255,0.0) 56%,
+      rgba(255,255,255,0.45) 56%,
+      rgba(255,255,255,0.45) 62%,
+      rgba(255,255,255,0.0) 62%,
+      rgba(255,255,255,0.0) 100%
+    );
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+@keyframes splitviewPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 0 rgba(255,255,255,0));
+    opacity: 0.95;
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.28));
+    opacity: 1;
+  }
+}
+
+.splitview-divider {
+  animation: splitviewPulse 1.8s ease-in-out infinite;
+}
+
+body.splitview-dragging .splitview-divider {
+  animation: none;
+}

@@ -9,9 +9,9 @@ import ClickSpark from './components/effects/ClickSpark'
 import Galaxy from './components/backgrounds/Galaxy'
 import { isTypingTarget } from './utils/isTypingTarget'
 import SectionNavButton from './components/SectionNavButton'
-import SectionMenu from './components/SectionMenu'
 import DNAMode from './components/three/DNAMode'
 import SectionBubbleMenu from './components/SectionBubbleMenu'
+import SplitView from './components/SplitView'
 
 const SCROLL_THRESHOLD = 40
 
@@ -28,25 +28,37 @@ const App = () => {
   const [skills, setSkills] = useState([])
   const [menuOpen, setMenuOpen] = useState(false)
 
+  // ✅ Desktop-only split view (>= 900px)
+  const [splitEnabled, setSplitEnabled] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 900px)').matches : true
+  )
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(min-width: 900px)')
+    const update = () => setSplitEnabled(mq.matches)
+    update()
+    mq.addEventListener?.('change', update)
+    return () => mq.removeEventListener?.('change', update)
+  }, [])
+
   /* ---------------- MENU SECTION ---------------- */
 
-  const jumpToIndex = (targetIndex) => {
-    if (scrolling) return
-    if (targetIndex === currentIndex) return
-    if (targetIndex < 0 || targetIndex >= sections.length) return
-
-    const direction = targetIndex > currentIndex ? 'down' : 'up'
+  const runTransitionToIndex = (targetIndex, direction) => {
+    // direction is 'down' | 'up'
     setLastScrollDir(direction)
 
-    // Planet: keep your exact transition
-    if (mode === 'Planet') {
+    // ✅ Desktop split: ALWAYS run both systems (Planet clouds + DNA helix)
+    if (splitEnabled) {
       setCloudDirection(direction)
+      setDnaPhase('transitioning')
+
       setScrolling(true)
       setIsCloudVisible('entry')
 
       setTimeout(() => {
         setCurrentIndex(targetIndex)
-        setPlanetId((prev) => (prev % 5) + 1) // if you want this to tick once per jump
+        setPlanetId((prev) => (prev % 5) + 1)
         setSkills([])
         setIsCloudVisible('exit')
       }, 800)
@@ -59,11 +71,40 @@ const App = () => {
       return
     }
 
-    // DNA: keep your exact behavior
+    // ✅ Mobile / non-split: keep your exact old behavior (mode-gated)
+    if (mode === 'Planet') {
+      setCloudDirection(direction)
+      setScrolling(true)
+      setIsCloudVisible('entry')
+
+      setTimeout(() => {
+        setCurrentIndex(targetIndex)
+        setPlanetId((prev) => (prev % 5) + 1)
+        setSkills([])
+        setIsCloudVisible('exit')
+      }, 800)
+
+      setTimeout(() => {
+        setIsCloudVisible(false)
+        setScrolling(false)
+      }, 2000)
+
+      return
+    }
+
     setDnaPhase('transitioning')
     setScrolling(true)
     setCurrentIndex(targetIndex)
     setTimeout(() => setScrolling(false), 900)
+  }
+
+  const jumpToIndex = (targetIndex) => {
+    if (scrolling) return
+    if (targetIndex === currentIndex) return
+    if (targetIndex < 0 || targetIndex >= sections.length) return
+
+    const direction = targetIndex > currentIndex ? 'down' : 'up'
+    runTransitionToIndex(targetIndex, direction)
   }
 
   /* ---------------- SCROLL HANDLING ---------------- */
@@ -77,53 +118,23 @@ const App = () => {
       const nextIndex = direction === 'down' ? currentIndex + 1 : currentIndex - 1
       if (nextIndex < 0 || nextIndex >= sections.length) return
 
-      setLastScrollDir(direction)
-
-      // ✅ Planet mode: keep your exact behavior
-      if (mode === 'Planet') {
-        setCloudDirection(direction)
-        setScrolling(true)
-        setIsCloudVisible('entry')
-
-        setTimeout(() => {
-          setCurrentIndex(nextIndex)
-          setPlanetId((prev) => (prev % 5) + 1)
-          setSkills([])
-          setIsCloudVisible('exit')
-        }, 800)
-
-        setTimeout(() => {
-          setIsCloudVisible(false)
-          setScrolling(false)
-        }, 2000)
-
-        return
-      }
-
-      // ✅ DNA mode: do NOT touch planetId/clouds/skills
-      // Hide text immediately; DNA helix will reveal it when ready
-      setDnaPhase('transitioning')
-      setScrolling(true)
-      setCurrentIndex(nextIndex)
-
-      // Scroll lock duration should match DNA transition duration (~800ms) + a little buffer
-      setTimeout(() => setScrolling(false), 900)
+      runTransitionToIndex(nextIndex, direction)
     }
 
     window.addEventListener('wheel', handleScroll, { passive: false })
     return () => window.removeEventListener('wheel', handleScroll)
-  }, [currentIndex, scrolling, mode])
+  }, [currentIndex, scrolling, mode, splitEnabled])
 
   useEffect(() => {
     let startX = 0
     let startY = 0
     let tracking = false
 
-    const THRESHOLD = 55 // swipe distance
-    const MAX_OFF_AXIS = 80 // ignore mostly horizontal gestures
+    const THRESHOLD = 55
+    const MAX_OFF_AXIS = 80
 
     const onTouchStart = (e) => {
-      if (menuOpen) return // ✅ ONLY CHANGE
+      if (menuOpen) return
       const t = e.touches?.[0]
       if (!t) return
       tracking = true
@@ -132,13 +143,12 @@ const App = () => {
     }
 
     const onTouchMove = (e) => {
-      if (menuOpen) return // ✅ ONLY CHANGE
-      // prevent iOS “rubber band” / back-swipe weirdness while tracking
+      if (menuOpen) return
       if (tracking) e.preventDefault()
     }
 
     const onTouchEnd = (e) => {
-      if (menuOpen) return // ✅ ONLY CHANGE
+      if (menuOpen) return
       if (!tracking) return
       tracking = false
 
@@ -148,7 +158,6 @@ const App = () => {
       const dx = t.clientX - startX
       const dy = t.clientY - startY
 
-      // ignore mostly horizontal swipes
       if (Math.abs(dx) > MAX_OFF_AXIS || Math.abs(dx) > Math.abs(dy)) return
       if (Math.abs(dy) < THRESHOLD) return
 
@@ -158,32 +167,7 @@ const App = () => {
       const nextIndex = direction === 'down' ? currentIndex + 1 : currentIndex - 1
       if (nextIndex < 0 || nextIndex >= sections.length) return
 
-      setLastScrollDir(direction)
-
-      if (mode === 'Planet') {
-        setCloudDirection(direction)
-        setScrolling(true)
-        setIsCloudVisible('entry')
-
-        setTimeout(() => {
-          setCurrentIndex(nextIndex)
-          setPlanetId((prev) => (prev % 5) + 1)
-          setSkills([])
-          setIsCloudVisible('exit')
-        }, 800)
-
-        setTimeout(() => {
-          setIsCloudVisible(false)
-          setScrolling(false)
-        }, 2000)
-
-        return
-      }
-
-      setDnaPhase('transitioning')
-      setScrolling(true)
-      setCurrentIndex(nextIndex)
-      setTimeout(() => setScrolling(false), 900)
+      runTransitionToIndex(nextIndex, direction)
     }
 
     const optsStart = { passive: true, capture: true }
@@ -199,9 +183,9 @@ const App = () => {
       window.removeEventListener('touchmove', onTouchMove, optsMove)
       window.removeEventListener('touchend', onTouchEnd, optsEnd)
     }
-  }, [currentIndex, mode, scrolling, menuOpen]) // ✅ ONLY CHANGE (added menuOpen)
+  }, [currentIndex, mode, scrolling, menuOpen, splitEnabled])
 
-  /* ---------------- KEYBOARD NAV (UPDATED) ---------------- */
+  /* ---------------- KEYBOARD NAV ---------------- */
 
   useEffect(() => {
     const doStep = (direction) => {
@@ -210,34 +194,7 @@ const App = () => {
       const nextIndex = direction === 'down' ? currentIndex + 1 : currentIndex - 1
       if (nextIndex < 0 || nextIndex >= sections.length) return
 
-      setLastScrollDir(direction)
-
-      // ✅ Planet mode: identical behavior to wheel
-      if (mode === 'Planet') {
-        setCloudDirection(direction)
-        setScrolling(true)
-        setIsCloudVisible('entry')
-
-        setTimeout(() => {
-          setCurrentIndex(nextIndex)
-          setPlanetId((prev) => (prev % 5) + 1)
-          setSkills([])
-          setIsCloudVisible('exit')
-        }, 800)
-
-        setTimeout(() => {
-          setIsCloudVisible(false)
-          setScrolling(false)
-        }, 2000)
-
-        return
-      }
-
-      // ✅ DNA mode: identical behavior to wheel
-      setDnaPhase('transitioning')
-      setScrolling(true)
-      setCurrentIndex(nextIndex)
-      setTimeout(() => setScrolling(false), 900)
+      runTransitionToIndex(nextIndex, direction)
     }
 
     const onKeyDown = (e) => {
@@ -245,21 +202,18 @@ const App = () => {
 
       const key = e.key
 
-      // Move down
       if (key === 'ArrowDown' || key === 'PageDown' || key === ' ') {
         e.preventDefault()
         doStep('down')
         return
       }
 
-      // Move up
       if (key === 'ArrowUp' || key === 'PageUp') {
         e.preventDefault()
         doStep('up')
         return
       }
 
-      // Home / End (jump)
       if (key === 'Home') {
         e.preventDefault()
         if (scrolling) return
@@ -279,13 +233,13 @@ const App = () => {
 
     window.addEventListener('keydown', onKeyDown, { passive: false })
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [currentIndex, scrolling, mode])
+  }, [currentIndex, scrolling, mode, splitEnabled])
 
   /* ---------------- MODE SWITCH SAFETY ---------------- */
 
   useEffect(() => {
-    if (mode === 'DNA') setDnaPhase('revealed')
-  }, [mode])
+    if (!splitEnabled && mode === 'DNA') setDnaPhase('revealed')
+  }, [mode, splitEnabled])
 
   /* ---------------- SKILL CLICK HANDLING ---------------- */
 
@@ -330,56 +284,75 @@ const App = () => {
 
   /* ---------------- RENDER ---------------- */
 
-  const showPlanet = mode === 'Planet'
-  const showDNA = mode === 'DNA'
+  const showPlanet = splitEnabled ? true : mode === 'Planet'
+  const showDNA = splitEnabled ? true : mode === 'DNA'
+
+  const planetLayer = (
+    <div style={{ opacity: showPlanet ? 1 : 0, pointerEvents: showPlanet ? 'auto' : 'none' }}>
+      <PlanetScene planetId={planetId} />
+      <MoonOverlay skills={skills} planetId={planetId} />
+      <GalaxyOverlay direction={cloudDirection} isVisible={isCloudVisible} />
+
+      {sections.map(
+        (section, index) =>
+          index === currentIndex && (
+            <PortfolioSection
+              key={`${section.id}-Planet`}
+              ref={(el) => (sectionRefs.current[index] = el)}
+              section={section}
+              mode="Planet"
+              dnaPhase={dnaPhase}
+            />
+          )
+      )}
+    </div>
+  )
+
+  const dnaLayer = (
+    <div style={{ opacity: showDNA ? 1 : 0, pointerEvents: showDNA ? 'auto' : 'none' }}>
+      <DNAMode
+        activeIndex={currentIndex}
+        direction={lastScrollDir}
+        dnaPhase={dnaPhase}
+        onPhaseChange={setDnaPhase}
+      />
+
+      {sections.map(
+        (section, index) =>
+          index === currentIndex && (
+            <PortfolioSection
+              key={`${section.id}-DNA`}
+              ref={(el) => (sectionRefs.current[index] = el)}
+              section={section}
+              mode="DNA"
+              dnaPhase={dnaPhase}
+            />
+          )
+      )}
+    </div>
+  )
 
   return (
     <ClickSpark sparkColor="#ffffff" sparkCount={10} sparkRadius={18} duration={420}>
       <Galaxy />
 
       <div>
-        {/* ---------------- PLANET LAYER (mounted always; hidden in DNA mode) ---------------- */}
-        <div style={{ opacity: showPlanet ? 1 : 0, pointerEvents: showPlanet ? 'auto' : 'none' }}>
-          <PlanetScene planetId={planetId} />
-          <MoonOverlay skills={skills} planetId={planetId} />
-          <GalaxyOverlay direction={cloudDirection} isVisible={isCloudVisible} />
-        </div>
+        {/* ✅ Split view on desktop, fallback to planet-only when disabled */}
+        <SplitView enabled={splitEnabled} left={planetLayer} right={dnaLayer} />
 
-        {/* ---------------- DNA LAYER (mounted always; hidden in Planet mode) ---------------- */}
-        <div style={{ opacity: showDNA ? 1 : 0, pointerEvents: showDNA ? 'auto' : 'none' }}>
-          <DNAMode
-            activeIndex={currentIndex}
-            direction={lastScrollDir}
-            dnaPhase={dnaPhase}
-            onPhaseChange={setDnaPhase}
-          />
-        </div>
+        {/* ✅ Hide toggle on desktop split, keep it on mobile */}
+        {!splitEnabled && <ModeToggleButton mode={mode} setMode={setMode} />}
 
-        <ModeToggleButton mode={mode} setMode={setMode} />
-
-        <SectionNavButton mode={mode} planetId={planetId} onClick={() => setMenuOpen(true)} />
+        <SectionNavButton mode={splitEnabled ? 'Planet' : mode} planetId={planetId} onClick={() => setMenuOpen(true)} />
 
         <SectionBubbleMenu
           open={menuOpen}
           onClose={() => setMenuOpen(false)}
           sections={sections}
           currentIndex={currentIndex}
-          mode={mode}
-          onSelectIndex={(idx) => setCurrentIndex(idx)}
+          mode={splitEnabled ? 'Planet' : mode}
+          onSelectIndex={(idx) => jumpToIndex(idx)}
         />
-
-        {sections.map(
-          (section, index) =>
-            index === currentIndex && (
-              <PortfolioSection
-                key={`${section.id}-${mode}`}
-                ref={(el) => (sectionRefs.current[index] = el)}
-                section={section}
-                mode={mode}
-                dnaPhase={dnaPhase}
-              />
-            )
-        )}
       </div>
     </ClickSpark>
   )
