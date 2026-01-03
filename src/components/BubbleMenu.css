@@ -219,3 +219,12 @@
   }
 }
 
+.bubble-menu-items .pill-link{
+  background: rgba(255, 0, 0, 0.7) !important;
+  min-height: 80px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  outline: 3px solid yellow !important;
+}
+
