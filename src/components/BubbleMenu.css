@@ -157,7 +157,6 @@
     align-items: flex-start;
     justify-content: center;
 
-    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
 

@@ -119,10 +119,11 @@ const App = () => {
     let startY = 0
     let tracking = false
 
-    const THRESHOLD = 55        // swipe distance
-    const MAX_OFF_AXIS = 80     // ignore mostly horizontal gestures
+    const THRESHOLD = 55 // swipe distance
+    const MAX_OFF_AXIS = 80 // ignore mostly horizontal gestures
 
     const onTouchStart = (e) => {
+      if (menuOpen) return // ✅ ONLY CHANGE
       const t = e.touches?.[0]
       if (!t) return
       tracking = true
@@ -131,11 +132,13 @@ const App = () => {
     }
 
     const onTouchMove = (e) => {
+      if (menuOpen) return // ✅ ONLY CHANGE
       // prevent iOS “rubber band” / back-swipe weirdness while tracking
       if (tracking) e.preventDefault()
     }
 
     const onTouchEnd = (e) => {
+      if (menuOpen) return // ✅ ONLY CHANGE
       if (!tracking) return
       tracking = false
 
@@ -184,8 +187,8 @@ const App = () => {
     }
 
     const optsStart = { passive: true, capture: true }
-    const optsMove  = { passive: false, capture: true }
-    const optsEnd   = { passive: true, capture: true }
+    const optsMove = { passive: false, capture: true }
+    const optsEnd = { passive: true, capture: true }
 
     window.addEventListener('touchstart', onTouchStart, optsStart)
     window.addEventListener('touchmove', onTouchMove, optsMove)
@@ -196,7 +199,7 @@ const App = () => {
       window.removeEventListener('touchmove', onTouchMove, optsMove)
       window.removeEventListener('touchend', onTouchEnd, optsEnd)
     }
-  }, [currentIndex, mode, scrolling])
+  }, [currentIndex, mode, scrolling, menuOpen]) // ✅ ONLY CHANGE (added menuOpen)
 
   /* ---------------- KEYBOARD NAV (UPDATED) ---------------- */
 
@@ -261,10 +264,6 @@ const App = () => {
         e.preventDefault()
         if (scrolling) return
         if (currentIndex === 0) return
-
-        // treat as repeated "up" jumps? nope — instant jump with your current animation rules:
-        // We'll do a single transition to target by stepping until you implement menu/jump properly.
-        // For now, do one step so it stays consistent with your transition system.
         doStep('up')
         return
       }
@@ -280,12 +279,11 @@ const App = () => {
 
     window.addEventListener('keydown', onKeyDown, { passive: false })
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [currentIndex, scrolling, mode]) // keep deps simple + correct
+  }, [currentIndex, scrolling, mode])
 
   /* ---------------- MODE SWITCH SAFETY ---------------- */
 
   useEffect(() => {
-    // When switching into DNA mode, ensure text is allowed unless DNA triggers otherwise.
     if (mode === 'DNA') setDnaPhase('revealed')
   }, [mode])
 
@@ -342,12 +340,8 @@ const App = () => {
       <div>
         {/* ---------------- PLANET LAYER (mounted always; hidden in DNA mode) ---------------- */}
         <div style={{ opacity: showPlanet ? 1 : 0, pointerEvents: showPlanet ? 'auto' : 'none' }}>
-          {/* planet behind text */}
           <PlanetScene planetId={planetId} />
-
-          {/* moons above text */}
           <MoonOverlay skills={skills} planetId={planetId} />
-
           <GalaxyOverlay direction={cloudDirection} isVisible={isCloudVisible} />
         </div>
 
@@ -361,14 +355,9 @@ const App = () => {
           />
         </div>
 
-        {/* Toggle stays global */}
         <ModeToggleButton mode={mode} setMode={setMode} />
 
-        <SectionNavButton
-          mode={mode}
-          planetId={planetId}
-          onClick={() => setMenuOpen(true)}
-        />
+        <SectionNavButton mode={mode} planetId={planetId} onClick={() => setMenuOpen(true)} />
 
         <SectionBubbleMenu
           open={menuOpen}
@@ -376,11 +365,9 @@ const App = () => {
           sections={sections}
           currentIndex={currentIndex}
           mode={mode}
-          onSelectIndex={(idx) => setCurrentIndex(idx)}  // or your jump transition
+          onSelectIndex={(idx) => setCurrentIndex(idx)}
         />
 
-
-        {/* Text stays as-is; DNA gating is via dnaPhase */}
         {sections.map(
           (section, index) =>
             index === currentIndex && (
