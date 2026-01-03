@@ -162,22 +162,41 @@
 }
 
 
-/* Mobile: single column so it never gets cramped */
+/* Mobile: single column + scrollable overlay (prevents "blur only") */
 @media (max-width: 899px) {
   .bubble-menu-items{
     align-items: flex-start;
     justify-content: center;
-    padding-top: 120px;
+
+    /* ✅ critical: allow content to be visible + scrollable */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
+    /* ✅ keep content below your top-left orb + respect notch */
+    padding-top: calc(env(safe-area-inset-top) + 90px);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
+
+    /* optional but helps: avoid sideways scroll */
+    overflow-x: hidden;
   }
 
   .bubble-menu-items .pill-list{
     --cols: 1 !important;
     --gap: 14px;
+
+    /* ✅ center the list and prevent it from going too wide */
+    width: min(92vw, 520px);
+    margin: 0 auto;
+
     padding: 0 16px;
+    box-sizing: border-box;
   }
 
   .bubble-menu-items .pill-link{
-    /* ensure the label can center properly */
+    /* ✅ keep the pill itself sensible on mobile */
+    min-height: 68px;
+    font-size: 18px;
+
     display: flex;
     align-items: center;
     justify-content: center;
