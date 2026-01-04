@@ -338,7 +338,7 @@ const App = () => {
 
       <div>
         {/* ✅ Split view on desktop, fallback to planet-only when disabled */}
-        <SplitView enabled={splitEnabled} left={planetLayer} right={dnaLayer} />
+        <SplitView enabled={splitEnabled} left={planetLayer} right={dnaLayer} active={mode === 'DNA' ? 'right' : 'left'} />
 
         {/* ✅ Hide toggle on desktop split, keep it on mobile */}
         {!splitEnabled && <ModeToggleButton mode={mode} setMode={setMode} />}

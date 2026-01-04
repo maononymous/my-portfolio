@@ -38,7 +38,7 @@ export default function SplitView({ enabled, left, right, initial = 0.5 }) {
   }, [enabled])
 
   if (!enabled) {
-    return <>{left}</>
+    return <>{active === 'left' ? left : right}</>
   }
 
   const pct = `${t * 100}%`
