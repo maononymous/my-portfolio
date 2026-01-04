@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './SplitView.css'
 
-export default function SplitView({ enabled, left, right, initial = 0.5 }) {
+export default function SplitView({ enabled, left, right, initial = 0.5, active = 'left' }) {
   const rootRef = useRef(null)
   const draggingRef = useRef(false)
   const [t, setT] = useState(initial) // 0..1
