@@ -9,7 +9,6 @@ const PortfolioSection = React.forwardRef(({ section, mode, dnaPhase = 'revealed
     <motion.section
       ref={ref}
       id={section.id}
-      // Avoid double-transitions fighting the DNA helix animation
       initial={mode === 'DNA' ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -40 }}
@@ -19,47 +18,55 @@ const PortfolioSection = React.forwardRef(({ section, mode, dnaPhase = 'revealed
         height: '100svh',
         minHeight: '100dvh',
         width: '100vw',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         scrollSnapAlign: 'start',
         background: 'transparent',
         color: '#eee',
         zIndex: 5,
         padding: 0,
         margin: 0,
-        transition: 'background 0.75s ease, color 0.75s ease',
       }}
     >
       <motion.div
-        // Keyed by "in/out" so Framer doesn’t get stuck when dnaPhase flips quickly
         key={`${mode}-${showDNAContent ? 'in' : 'out'}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: showDNAContent ? 1 : 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
         style={{
-          maxWidth: '800px',
-          padding: '2rem',
-          textAlign: 'left',
-          borderRadius: '10px',
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          top: 0,
+          width: 'min(800px, calc(100vw - 4rem))',
+          height: '100%',
           zIndex: 2,
           pointerEvents: showDNAContent ? 'auto' : 'none',
           willChange: 'opacity, transform',
+          textAlign: 'left',
         }}
       >
-        <h2 style={{ marginBottom: '0.5rem' }}>{section.title}</h2>
-        <h4 style={{ marginBottom: '1rem', fontWeight: 400 }}>{section.subtitle}</h4>
+        {/* FIXED PIXEL/VIEWPORT POSITIONS */}
+        <div style={{ position: 'absolute', top: 380, left: 0, right: 0 }}>
+          <h2 style={{ margin: 0, lineHeight: 1.1 }}>{section.title}</h2>
+        </div>
 
-        {/* TEXT CONTENT */}
-        {mode === 'DNA' ? (
-          <p style={{ lineHeight: '1.6' }}>{section.dnaContent}</p>
-        ) : (
-          <div
-            className="planet-text"
-            style={{ lineHeight: '1.6' }}
-            dangerouslySetInnerHTML={{ __html: section.planetContent }}
+        <div style={{ position: 'absolute', top: 450, left: 0, right: 0 }}>
+          <h4
+            style={{ margin: 0, fontWeight: 400, lineHeight: 1.25 }}
+            dangerouslySetInnerHTML={{ __html: section.subtitle }}
           />
-        )}
+        </div>
+
+        <div style={{ position: 'absolute', top: 500, left: 0, right: 0 }}>
+          {mode === 'DNA' ? (
+            <p style={{ margin: 0, lineHeight: 1.6 }}>{section.dnaContent}</p>
+          ) : (
+            <div
+              className="planet-text"
+              style={{ lineHeight: 1.6 }}
+              dangerouslySetInnerHTML={{ __html: section.planetContent }}
+            />
+          )}
+        </div>
       </motion.div>
     </motion.section>
   )

@@ -1,5 +1,6 @@
 // components/SectionNavButton.jsx
 import React, { useMemo } from 'react'
+import DesktopMenuIcon from '../assets/DesktopMenuIcon.png'
 
 // match your PlanetScene texture map
 const textureMap = {
@@ -62,23 +63,24 @@ function DNAIcon(){
 
 
 
-export default function SectionNavButton({ mode, planetId, onClick }) {
+export default function SectionNavButton({ mode, planetId, onClick, isDesktop }) {
   const planetTexture = useMemo(() => textureMap[planetId] || textureMap[1], [planetId])
 
   return (
     <button
       type="button"
-      className={`navOrb ${mode === 'DNA' ? 'navOrb--dna' : 'navOrb--planet'}`}
+      className={`navOrb ${isDesktop ? 'navOrb--desktop' : mode === 'DNA' ? 'navOrb--dna' : 'navOrb--planet'}`}
       onClick={onClick}
       aria-label="Open section navigation"
-      style={
-        mode === 'Planet'
-          ? { backgroundImage: `url(${planetTexture})` }
-          : undefined
-      }
+      style={{
+        top: '16px',
+        right: '16px',
+        left: 'auto',
+        ...(!isDesktop && mode === 'Planet' ? { backgroundImage: `url(${planetTexture})` } : {}),
+      }}
     >
-      {mode === 'DNA' ? <DNAIcon /> : null}
-      <span className="navOrb__ring" aria-hidden="true" />
+      {isDesktop ? <img src={DesktopMenuIcon} alt="" className="navOrb__icon" aria-hidden="true"/> : mode === 'DNA' ? <DNAIcon /> : null}
+      {!isDesktop && <span className="navOrb__ring" aria-hidden="true" />}
     </button>
   )
 }

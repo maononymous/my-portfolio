@@ -55,7 +55,6 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -422,4 +421,29 @@ html, body, #root {
     top: 0.85rem;
     left: 0.85rem;
   }
+}
+
+.navOrb__icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  filter: invert(1) brightness(2) contrast(1.1) drop-shadow(0 0 6px rgba(255,255,255,0.25));
+}
+
+/* Desktop menu button: icon only */
+.navOrb--desktop {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Optional: keep ring but make it subtle */
+.navOrb--desktop .navOrb__ring {
+  display: none !important;
+  opacity: 0.35;
 }

@@ -161,7 +161,7 @@ function DNAHelix({ activeIndex, direction, dnaPhase, onTransitionState }) {
         turns={isNarrow ? 1.2 : 0.74}
         radius={2.5}
         segments={400}
-        railRadius={0.074}
+        railRadius={0.1}
         rungEvery={17}
         rungInset={1}
         rungRadius={0.037}

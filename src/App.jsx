@@ -1,4 +1,3 @@
-// App.jsx
 import React, { useRef, useEffect, useState } from 'react'
 import PortfolioSection from './components/PortfolioSection'
 import PlanetScene, { MoonOverlay } from './components/three/PlanetScene'
@@ -12,6 +11,9 @@ import SectionNavButton from './components/SectionNavButton'
 import DNAMode from './components/three/DNAMode'
 import SectionBubbleMenu from './components/SectionBubbleMenu'
 import SplitView from './components/SplitView'
+
+// ✅ NEW: global fixed overlay
+import PortfolioTextOverlay from './components/PortfolioTextOverlay'
 
 const SCROLL_THRESHOLD = 40
 
@@ -33,6 +35,11 @@ const App = () => {
     typeof window !== 'undefined' ? window.matchMedia('(min-width: 900px)').matches : true
   )
 
+  // ✅ NEW: reveal for global text overlay (0 = DNA, 1 = Planet)
+  // On mobile/non-split we keep it snapped to the active mode.
+  // On split, default is 0.5 unless SplitView provides a ratio callback.
+  const [reveal, setReveal] = useState(0.5)
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     const mq = window.matchMedia('(min-width: 900px)')
@@ -41,6 +48,12 @@ const App = () => {
     mq.addEventListener?.('change', update)
     return () => mq.removeEventListener?.('change', update)
   }, [])
+
+  // ✅ Keep overlay reveal in sync when NOT in split mode
+  useEffect(() => {
+    if (splitEnabled) return
+    setReveal(mode === 'DNA' ? 0 : 1)
+  }, [mode, splitEnabled])
 
   /* ---------------- MENU SECTION ---------------- */
 
@@ -332,18 +345,43 @@ const App = () => {
     </div>
   )
 
+  const activeSection = sections[currentIndex]
+
   return (
     <ClickSpark sparkColor="#ffffff" sparkCount={10} sparkRadius={18} duration={420}>
       <Galaxy />
 
+      {/* ✅ GLOBAL FIXED OVERLAY (one overlay for both modes) */}
+      <PortfolioTextOverlay
+        section={activeSection}
+        reveal={reveal}
+        mode={splitEnabled ? 'Split' : mode}
+        dnaPhase={dnaPhase}
+      />
+
       <div>
         {/* ✅ Split view on desktop, fallback to planet-only when disabled */}
-        <SplitView enabled={splitEnabled} left={planetLayer} right={dnaLayer} active={mode === 'DNA' ? 'right' : 'left'} />
+        {/* If your SplitView supports a ratio callback, it can drive the overlay reveal:
+            - pass reveal + onRevealChange
+            - if SplitView ignores these props, nothing breaks (overlay stays at 0.5 in split) */}
+        <SplitView
+          enabled={splitEnabled}
+          left={planetLayer}
+          right={dnaLayer}
+          active={mode === 'DNA' ? 'right' : 'left'}
+          reveal={reveal}
+          onRevealChange={setReveal}
+        />
 
         {/* ✅ Hide toggle on desktop split, keep it on mobile */}
         {!splitEnabled && <ModeToggleButton mode={mode} setMode={setMode} />}
 
-        <SectionNavButton mode={splitEnabled ? 'Planet' : mode} planetId={planetId} onClick={() => setMenuOpen(true)} />
+        <SectionNavButton
+          mode={splitEnabled ? 'Planet' : mode}
+          planetId={planetId}
+          onClick={() => setMenuOpen(true)}
+          isDesktop={splitEnabled}
+        />
 
         <SectionBubbleMenu
           open={menuOpen}
