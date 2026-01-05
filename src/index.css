@@ -460,3 +460,21 @@ body,
     left: 0.85rem;
   }
 }
+
+/* ✅ FORCE mobile = top-left */
+@media (max-width: 899px) {
+  .navOrb {
+    left: calc(var(--safe-left) + 12px) !important;
+    right: auto !important;
+    top: calc(var(--safe-top) + 12px) !important;
+  }
+}
+
+/* ✅ Desktop-only = top-right (only for desktop button class) */
+@media (min-width: 900px) {
+  .navOrb.navOrb--desktop {
+    left: auto !important;
+    right: calc(var(--safe-right) + 12px) !important;
+    top: calc(var(--safe-top) + 12px) !important;
+  }
+}
