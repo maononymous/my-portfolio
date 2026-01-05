@@ -1,3 +1,5 @@
+/* index.css */
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -11,6 +13,12 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Safe-area helpers */
+  --safe-top: env(safe-area-inset-top);
+  --safe-right: env(safe-area-inset-right);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-left: env(safe-area-inset-left);
 }
 
 a {
@@ -31,8 +39,8 @@ body {
   min-height: 100vh;
 
   /* modern mobile */
-  min-height: 100svh;  /* stable viewport height */
-  min-height: 100dvh;  /* dynamic viewport height (newer browsers) */
+  min-height: 100svh; /* stable viewport height */
+  min-height: 100dvh; /* dynamic viewport height (newer browsers) */
 
   overflow: hidden;
   overscroll-behavior: none;
@@ -41,7 +49,6 @@ body {
   -webkit-text-size-adjust: 100%;
   touch-action: manipulation; /* allow taps; we will handle swipe in App */
 }
-
 
 h1 {
   font-size: 3.2em;
@@ -83,10 +90,13 @@ button:focus-visible {
   width: 6px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 10px;
 }
-html, body, #root {
+
+html,
+body,
+#root {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -108,12 +118,9 @@ html, body, #root {
   display: inline-block;
 
   opacity: 0.9;
-  transition:
-    opacity 0.2s ease,
-    color 0.2s ease;
+  transition: opacity 0.2s ease, color 0.2s ease;
 }
 
-/* Subtle underline that feels like part of text */
 .skill::after {
   content: '';
   position: absolute;
@@ -125,16 +132,13 @@ html, body, #root {
   opacity: 0.25;
   transform: scaleX(0.6);
   transform-origin: center;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-/* Hover / focus */
 .skill:hover,
 .skill:focus-visible {
   opacity: 1;
-  color: #e8ecff; /* or inherit if you want zero color shift */
+  color: #e8ecff;
 }
 
 .skill:hover::after,
@@ -143,12 +147,10 @@ html, body, #root {
   transform: scaleX(1);
 }
 
-/* Active / pressed */
 .skill:active {
   opacity: 0.75;
 }
 
-/* Remove ugly default focus outline */
 .skill:focus {
   outline: none;
 }
@@ -161,162 +163,75 @@ html, body, #root {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Safe-area helpers (we’ll use these in inline styles / components if needed) */
-:root {
-  --safe-top: env(safe-area-inset-top);
-  --safe-right: env(safe-area-inset-right);
-  --safe-bottom: env(safe-area-inset-bottom);
-  --safe-left: env(safe-area-inset-left);
-}
-
 /* ---------- Themed nav orb ---------- */
-.navOrb{
+.navOrb {
   position: fixed;
   top: calc(var(--safe-top) + 12px);
+
+  /* ✅ MOBILE DEFAULT: top-left */
   left: calc(var(--safe-left) + 12px);
+  right: auto;
+
   width: 46px;
   height: 46px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.14);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   padding: 0;
   cursor: pointer;
   z-index: 1200;
+
   display: grid;
   place-items: center;
+
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
-  background: rgba(0,0,0,0.25);
+
+  background: rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.navOrb--planet{
+/* ✅ DESKTOP: move button to top-right */
+@media (min-width: 900px) {
+  .navOrb {
+    left: auto;
+    right: calc(var(--safe-right) + 12px);
+  }
+}
+
+.navOrb--planet {
   background-size: cover;
   background-position: center;
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,0.08) inset,
-    0 10px 30px rgba(0,0,0,0.35);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset, 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
-.navOrb--dna{
-  color: rgba(214,207,196,0.95);
-  background: rgba(11,28,31,0.55);
-  box-shadow:
-    0 0 0 1px rgba(214,207,196,0.12) inset,
-    0 10px 30px rgba(0,0,0,0.35);
+.navOrb--dna {
+  color: rgba(214, 207, 196, 0.95);
+  background: rgba(11, 28, 31, 0.55);
+  box-shadow: 0 0 0 1px rgba(214, 207, 196, 0.12) inset, 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
-.navOrb__ring{
+.navOrb__ring {
   position: absolute;
   inset: -20%;
   border-radius: 999px;
-  background: radial-gradient(circle at 30% 30%,
-    rgba(255,255,255,0.22),
-    rgba(255,255,255,0.06) 40%,
-    rgba(255,255,255,0.00) 70%
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.22),
+    rgba(255, 255, 255, 0.06) 40%,
+    rgba(255, 255, 255, 0) 70%
   );
   pointer-events: none;
 }
 
-.navOrb:active{
+.navOrb:active {
   transform: scale(0.98);
 }
 
-/* ---------- Section menu overlay ---------- */
-.sectionMenuOverlay{
-  position: fixed;
-  inset: 0;
-  z-index: 1190;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: calc(var(--safe-top) + 12px) 12px 12px calc(var(--safe-left) + 12px);
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(8px);
-}
-
-.sectionMenuPanel{
-  width: min(360px, calc(100vw - 24px));
-  max-height: calc(100svh - (var(--safe-top) + 24px));
-  overflow: auto;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.12);
-}
-
-.sectionMenuOverlay.isPlanet .sectionMenuPanel{
-  background: rgba(10,10,10,0.88);
-}
-
-.sectionMenuOverlay.isDNA .sectionMenuPanel{
-  background: rgba(11,28,31,0.88);
-  border-color: rgba(214,207,196,0.16);
-}
-
-.sectionMenuHeader{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.sectionMenuTitle{
-  color: rgba(255,255,255,0.92);
-  font-weight: 700;
-  letter-spacing: 0.2px;
-}
-
-.sectionMenuClose{
-  border: 0;
-  background: transparent;
-  color: rgba(255,255,255,0.9);
-  font-size: 18px;
-  padding: 8px 10px;
-  border-radius: 10px;
-}
-
-.sectionMenuClose:hover{
-  background: rgba(255,255,255,0.06);
-}
-
-.sectionMenuList{
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-  gap: 8px;
-}
-
-.sectionMenuItem{
-  text-align: left;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.04);
-  border-radius: 12px;
-  padding: 10px 12px;
-  cursor: pointer;
-}
-
-.sectionMenuItem:hover{
-  background: rgba(255,255,255,0.06);
-}
-
-.sectionMenuItem.active{
-  border-color: rgba(255,255,255,0.22);
-  background: rgba(255,255,255,0.08);
-}
-
-.sectionMenuItemTitle{
-  color: rgba(255,255,255,0.92);
-  font-weight: 650;
-}
-
-.sectionMenuItemSub{
-  margin-top: 3px;
-  color: rgba(255,255,255,0.65);
-  font-size: 0.9rem;
-}
-
-.navOrb--dna .dnaIcon{
+/* DNA icon */
+.navOrb--dna .dnaIcon {
   width: 20px;
   height: 20px;
   transform: rotate(90deg);
@@ -324,9 +239,13 @@ html, body, #root {
   opacity: 0.95;
 }
 
-@keyframes dnaSpin{
-  from { transform: rotate(90deg); }
-  to   { transform: rotate(450deg); }
+@keyframes dnaSpin {
+  from {
+    transform: rotate(90deg);
+  }
+  to {
+    transform: rotate(450deg);
+  }
 }
 
 .navOrb--dna:hover {
@@ -337,26 +256,146 @@ html, body, #root {
   color: #b8cfc7;
 }
 
+/* Desktop icon PNG */
+.navOrb__icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  filter: invert(1) brightness(2) contrast(1.1) drop-shadow(0 0 6px rgba(255, 255, 255, 0.25));
+}
+
+/* Desktop menu button: icon only (still positioned top-right via .navOrb desktop rule above) */
+.navOrb--desktop {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.navOrb--desktop .navOrb__ring {
+  display: none !important;
+}
+
+/* ---------- Section menu overlay ---------- */
+.sectionMenuOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1190;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: calc(var(--safe-top) + 12px) 12px 12px calc(var(--safe-left) + 12px);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.sectionMenuPanel {
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100svh - (var(--safe-top) + 24px));
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sectionMenuOverlay.isPlanet .sectionMenuPanel {
+  background: rgba(10, 10, 10, 0.88);
+}
+
+.sectionMenuOverlay.isDNA .sectionMenuPanel {
+  background: rgba(11, 28, 31, 0.88);
+  border-color: rgba(214, 207, 196, 0.16);
+}
+
+.sectionMenuHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sectionMenuTitle {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.sectionMenuClose {
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 18px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.sectionMenuClose:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sectionMenuList {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 8px;
+}
+
+.sectionMenuItem {
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.sectionMenuItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sectionMenuItem.active {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sectionMenuItemTitle {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 650;
+}
+
+.sectionMenuItemSub {
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.9rem;
+}
+
 /* ===== Bubble Menu ===== */
 
-.bubbleMenuOverlay{
+.bubbleMenuOverlay {
   position: fixed;
   inset: 0;
   z-index: 1200;
-  background: rgba(0,0,0,0.25);
+  background: rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
-.bubbleMenuOverlay--dna{
+.bubbleMenuOverlay--dna {
   background: rgba(0, 10, 12, 0.28);
 }
 
-.bubbleMenuOverlay--planet{
+.bubbleMenuOverlay--planet {
   background: rgba(0, 0, 0, 0.25);
 }
 
 /* Anchor at top-left (same zone as your nav orb) */
-.bubbleMenuAnchor{
+.bubbleMenuAnchor {
   position: fixed;
   top: 1rem;
   left: 1rem;
@@ -367,83 +406,57 @@ html, body, #root {
 }
 
 /* This is the "origin" point */
-.bubbleMenuList{
+.bubbleMenuList {
   position: absolute;
   left: 0;
   top: 0;
   pointer-events: none;
 }
 
-.bubbleMenuItem{
+.bubbleMenuItem {
   position: absolute;
   left: 0;
   top: 0;
   pointer-events: auto;
 
-  border: 1px solid rgba(255,255,255,0.18);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
 
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 
   display: grid;
   place-items: center;
 
-  color: rgba(255,255,255,0.92);
+  color: rgba(255, 255, 255, 0.92);
   cursor: pointer;
 
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.10);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.bubbleMenuItem:hover{
-  border-color: rgba(255,255,255,0.28);
-  background: rgba(255,255,255,0.09);
+.bubbleMenuItem:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.09);
 }
 
-.bubbleMenuItem.isActive{
-  border-color: rgba(255,255,255,0.42);
-  background: rgba(255,255,255,0.12);
+.bubbleMenuItem.isActive {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.12);
 }
 
-.bubbleMenuItem__label{
+.bubbleMenuItem__label {
   font-weight: 650;
   font-size: 12px;
   letter-spacing: 0.06em;
 }
 
 /* mobile tuning */
-@media (max-width: 768px){
-  .bubbleMenuAnchor{
+@media (max-width: 768px) {
+  .bubbleMenuAnchor {
     top: 0.85rem;
     left: 0.85rem;
   }
-}
-
-.navOrb__icon {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  pointer-events: none;
-  user-select: none;
-  filter: invert(1) brightness(2) contrast(1.1) drop-shadow(0 0 6px rgba(255,255,255,0.25));
-}
-
-/* Desktop menu button: icon only */
-.navOrb--desktop {
-  background: transparent !important;
-  background-image: none !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* Optional: keep ring but make it subtle */
-.navOrb--desktop .navOrb__ring {
-  display: none !important;
-  opacity: 0.35;
 }
