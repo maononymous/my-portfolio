@@ -5,6 +5,9 @@ const PortfolioSection = React.forwardRef(({ section, mode, dnaPhase = 'revealed
   // In DNA mode, only show the foreground text AFTER the helix finishes transition + cone lights up
   const showDNAContent = mode !== 'DNA' || dnaPhase === 'revealed'
 
+  const isMobile = typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false
+  const POSITIONS = isMobile ? { title: 140, subtitle: 260, body: 380} : { title: 380, subtitle: 450, body: 500}
+
   return (
     <motion.section
       ref={ref}
