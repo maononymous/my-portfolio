@@ -17,6 +17,151 @@ import PortfolioTextOverlay from './components/PortfolioTextOverlay'
 
 const SCROLL_THRESHOLD = 40
 
+/* ---------------- SOCIAL FAB (bottom-right) ---------------- */
+
+const IconGitHub = (props) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...props}>
+    <path d="M12 .5a11.5 11.5 0 0 0-3.64 22.4c.58.1.8-.25.8-.56v-2c-3.26.72-3.95-1.4-3.95-1.4-.53-1.35-1.3-1.7-1.3-1.7-1.06-.73.08-.72.08-.72 1.18.08 1.8 1.2 1.8 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.4-1.27.72-1.56-2.6-.3-5.34-1.3-5.34-5.8 0-1.28.46-2.33 1.2-3.15-.12-.3-.52-1.5.12-3.12 0 0 .98-.31 3.2 1.2a11 11 0 0 1 5.82 0c2.22-1.51 3.2-1.2 3.2-1.2.64 1.62.24 2.82.12 3.12.75.82 1.2 1.87 1.2 3.15 0 4.5-2.75 5.5-5.36 5.79.41.35.78 1.05.78 2.13v3.15c0 .31.21.66.8.55A11.5 11.5 0 0 0 12 .5z" />
+  </svg>
+)
+
+const IconLinkedIn = (props) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...props}>
+    <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1 4.98 2.12 4.98 3.5zM.5 23.5h4V7.98h-4V23.5zM8.5 7.98h3.83v2.12h.05c.53-1 1.83-2.12 3.77-2.12 4.03 0 4.78 2.65 4.78 6.1v9.42h-4v-8.36c0-2-.04-4.57-2.79-4.57-2.8 0-3.23 2.17-3.23 4.42v8.51h-4V7.98z" />
+  </svg>
+)
+
+const IconMail = (props) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...props}>
+    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" />
+  </svg>
+)
+
+function SocialFab() {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef(null)
+
+  const links = [
+    {
+      key: 'github',
+      label: 'GitHub',
+      href: 'https://github.com/maononymous',
+      Icon: IconGitHub,
+      dx: 0,
+      dy: -72,
+    },
+    {
+      key: 'linkedin',
+      label: 'LinkedIn',
+      href: 'https://www.linkedin.com/in/abdullahomermohammed',
+      Icon: IconLinkedIn,
+      dx: -56,
+      dy: -56,
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      href: 'mailto:mabdul23@depaul.edu',
+      Icon: IconMail,
+      dx: -72,
+      dy: 0,
+    },
+  ]
+
+  useEffect(() => {
+    const onDocDown = (e) => {
+      if (!open) return
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', onDocDown)
+    return () => document.removeEventListener('pointerdown', onDocDown)
+  }, [open])
+
+  return (
+    <div
+      ref={rootRef}
+      style={{
+        position: 'fixed',
+        right: '24px',
+        bottom: '24px',
+        zIndex: 100,
+        userSelect: 'none',
+      }}
+    >
+      {/* Items */}
+      {links.map(({ key, label, href, Icon, dx, dy }, i) => (
+        <a
+          key={key}
+          href={href}
+          target={href.startsWith('http') ? '_blank' : undefined}
+          rel={href.startsWith('http') ? 'noreferrer' : undefined}
+          aria-label={label}
+          title={label}
+          onClick={() => setOpen(false)}
+          style={{
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            width: 44,
+            height: 44,
+            borderRadius: 999,
+            display: 'grid',
+            placeItems: 'center',
+            textDecoration: 'none',
+            color: 'rgba(255,255,255,0.92)',
+            background: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.16)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            opacity: open ? 1 : 0,
+            pointerEvents: open ? 'auto' : 'none',
+            transform: open
+              ? `translate(${dx}px, ${dy}px) scale(1)`
+              : 'translate(0px, 0px) scale(0.82)',
+            transition:
+              'transform 320ms cubic-bezier(0.2, 0.9, 0.2, 1), opacity 240ms ease',
+            transitionDelay: open ? `${i * 50}ms` : '0ms',
+          }}
+        >
+          <Icon style={{ fill: 'currentColor' }} />
+        </a>
+      ))}
+
+      {/* Main button */}
+      <button
+        type="button"
+        aria-label={open ? 'Close links' : 'Open links'}
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: 999,
+          border: '1px solid rgba(255,255,255,0.18)',
+          background: 'rgba(255,255,255,0.10)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          color: 'rgba(255,255,255,0.92)',
+          cursor: 'pointer',
+          display: 'grid',
+          placeItems: 'center',
+          boxShadow: '0 12px 30px rgba(0,0,0,0.35)',
+        }}
+      >
+        <span
+          style={{
+            fontSize: 16,
+            lineHeight: 1,
+            transform: open ? 'rotate(45deg)' : 'rotate(0deg)',
+            transition: 'transform 240ms ease',
+          }}
+        >
+          ✦
+        </span>
+      </button>
+    </div>
+  )
+}
+
 const App = () => {
   const [mode, setMode] = useState('Planet')
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -265,7 +410,7 @@ const App = () => {
       window.setTimeout(() => setSkills([]), CLOSE_MS)
     }
 
-    const onDocumentClick = (e) => { 
+    const onDocumentClick = (e) => {
       const el = e.target.closest?.('.skill')
 
       if (el) {
@@ -351,7 +496,6 @@ const App = () => {
     <ClickSpark sparkColor="#ffffff" sparkCount={10} sparkRadius={18} duration={420}>
       <Galaxy />
 
-      {/* ✅ GLOBAL FIXED OVERLAY (one overlay for both modes) */}
       <PortfolioTextOverlay
         section={activeSection}
         reveal={reveal}
@@ -359,11 +503,10 @@ const App = () => {
         dnaPhase={dnaPhase}
       />
 
+      {/* ✅ Bottom-right social FAB */}
+      <SocialFab />
+
       <div>
-        {/* ✅ Split view on desktop, fallback to planet-only when disabled */}
-        {/* If your SplitView supports a ratio callback, it can drive the overlay reveal:
-            - pass reveal + onRevealChange
-            - if SplitView ignores these props, nothing breaks (overlay stays at 0.5 in split) */}
         <SplitView
           enabled={splitEnabled}
           left={planetLayer}
@@ -373,7 +516,6 @@ const App = () => {
           onRevealChange={setReveal}
         />
 
-        {/* ✅ Hide toggle on desktop split, keep it on mobile */}
         {!splitEnabled && <ModeToggleButton mode={mode} setMode={setMode} />}
 
         <SectionNavButton
