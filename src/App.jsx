@@ -265,7 +265,7 @@ const App = () => {
       window.setTimeout(() => setSkills([]), CLOSE_MS)
     }
 
-    const onDocumentClick = (e) => {
+    const onDocumentClick = (e) => { 
       const el = e.target.closest?.('.skill')
 
       if (el) {

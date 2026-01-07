@@ -3,6 +3,7 @@ import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { TextureLoader } from 'three'
+import { skillSections } from '../../data/skillSections'
 
 /* ---------------- TEXTURES ---------------- */
 
@@ -38,14 +39,34 @@ const PLANET_RADIUS = 2
 const SPAWN_OFFSET = 0.4
 const ORBIT_BASE = 3.1
 
-const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
+/**
+ * skillObj expected shape (from sections.js):
+ * {
+ *   id, buttonLabel, moonLabel, blurb, links
+ * }
+ *
+ * animation wrapper shape (optional):
+ * { closing, born }
+ */
+const SkillMoon = ({
+  skillObj,
+  index,
+  total,
+  closing,
+  born,
+  planetId,
+  onSkillClick,
+}) => {
   const ref = useRef()
   const meshRef = useRef()
   const htmlRef = useRef()
   const isMobileRef = useRef(false)
 
   const moonTexture = useLoader(TextureLoader, '/textures/2k_moon.jpg')
-  const planetTexture = useLoader(TextureLoader, textureMap[planetId] || textureMap[1])
+  const planetTexture = useLoader(
+    TextureLoader,
+    textureMap[planetId] || textureMap[1]
+  )
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)')
@@ -73,15 +94,12 @@ const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
     angleRef.current = (angleRef.current + delta * effectiveSpeed) % (Math.PI * 2)
 
     const angle = angleRef.current
-
-    // ✅ define isMobile BEFORE using it
     const isMobile = isMobileRef.current
     const orbitAngle = isMobile ? angle : angle + Math.PI
 
     if (meshRef.current?.material) {
       const mat = meshRef.current.material
       mat.transparent = true
-      mat.blending = THREE.NormalBlending
       mat.depthWrite = false
 
       const target = behind && !closing ? 0.0 : 1.0
@@ -94,23 +112,10 @@ const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
     }
 
     const startR = PLANET_RADIUS + SPAWN_OFFSET
-
-    // Spawn start
     let spawnX = 0,
-      spawnY = 0,
+      spawnY = isMobile ? -startR : 0,
       spawnZ = 0
 
-    if (isMobile) {
-      // MOBILE: unchanged
-      spawnY = -startR
-      spawnZ = 0
-    } else {
-      // DESKTOP: spawn at CENTER
-      spawnX = 0
-      spawnZ = 0
-    }
-
-    // Orbit target
     let orbitX = 0,
       orbitY = 0,
       orbitZ = 0
@@ -119,7 +124,6 @@ const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
       orbitY = Math.cos(angle) * orbitRadius
       orbitZ = Math.sin(angle) * orbitRadius
     } else {
-      // DESKTOP: phase-shifted so it heads LEFT first
       orbitX = Math.cos(orbitAngle) * orbitRadius
       orbitZ = Math.sin(orbitAngle) * orbitRadius
     }
@@ -128,27 +132,28 @@ const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
     const p = Math.min(1, Math.max(0, elapsed / 650))
     const ease = p * p * (3 - 2 * p)
 
-    let x, y, z
-    if (!closing) {
-      x = spawnX + (orbitX - spawnX) * ease
-      y = spawnY + (orbitY - spawnY) * ease
-      z = spawnZ + (orbitZ - spawnZ) * ease
-    } else {
-      x = orbitX * (1 - ease)
-      y = orbitY * (1 - ease)
-      z = orbitZ * (1 - ease)
-    }
+    const x = closing ? orbitX * (1 - ease) : spawnX + (orbitX - spawnX) * ease
+    const y = closing ? orbitY * (1 - ease) : spawnY + (orbitY - spawnY) * ease
+    const z = closing ? orbitZ * (1 - ease) : spawnZ + (orbitZ - spawnZ) * ease
 
     ref.current.position.set(x, y, z)
 
     const s = ref.current.scale.x
-    const targetScale = closing ? 0.0 : 1.0
-    ref.current.scale.setScalar(s + (targetScale - s) * 0.10)
+    ref.current.scale.setScalar(s + ((closing ? 0 : 1) - s) * 0.1)
   })
+
+  // 🔑 Skill lookup
+  const skillKey = skillObj?.id || skillObj?.buttonLabel
+  const skillData = skillSections[skillKey]
 
   return (
     <group ref={ref} scale={[0, 0, 0]}>
-      <mesh ref={meshRef}>
+      <mesh
+        ref={meshRef}
+        onClick={(e) => {
+          e.stopPropagation()
+        }}
+      >
         <sphereGeometry args={[0.5, 32, 32]} />
         <meshStandardMaterial
           map={moonTexture}
@@ -162,18 +167,28 @@ const SkillMoon = ({ skill, index, total, closing, born, planetId }) => {
       </mesh>
 
       <Html
+        portal={false}
         ref={htmlRef}
         center
         distanceFactor={10}
+        wrapperClass="skill-moon-ui"
         style={{
-          fontSize: '12px',
+          fontSize: '9px',
           color: '#e8ecff',
           opacity: 0.9,
-          pointerEvents: 'none',
-          whiteSpace: 'nowrap',
+          pointerEvents: 'auto',
+          width: '150px',
+          maxWidth: '10000px',
+          textAlign: 'center',
+          cursor: skillData?.link ? 'pointer' : 'default',
+          userSelect: 'none',
         }}
       >
-        {skill}
+        <div className="skill-moon-ui">
+          <div style={{ marginBottom: '6px' }}>
+            {skillData.description}
+          </div>
+        </div>
       </Html>
     </group>
   )
@@ -222,28 +237,51 @@ const PlanetScene = ({ planetId, speed = 0.002 }) => (
   </Canvas>
 )
 
-export const MoonOverlay = ({ skills = [], planetId }) => (
+/**
+ * MoonOverlay now expects skills like:
+ * [
+ *   { id, buttonLabel, moonLabel, blurb, links, closing?, born? }
+ * ]
+ *
+ * If you still feed animation wrappers, we’ll support both forms:
+ * - direct skill objects with (closing, born)
+ * - old shape { key, closing, born, ... } where key maps to id
+ */
+export const MoonOverlay = ({ skills = [], planetId, onSkillClick }) => (
   <Canvas
+    className="moon-overlay-canvas"
     dpr={[1, 1.5]}
     gl={{ alpha: true }}
     onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-    style={{ position: 'fixed', inset: 0, zIndex: 3, pointerEvents: 'none' }}
+    // IMPORTANT: enable pointerEvents so clicks work
+    style={{ position: 'fixed', inset: 0, zIndex: 3, pointerEvents: 'auto' }}
     camera={{ position: [0, 0, 6], fov: 45 }}
   >
     <ResponsiveCamera />
     <ambientLight intensity={0.9} />
     <Suspense fallback={null}>
-      {skills.map((s, i) => (
-        <SkillMoon
-          key={s.key}
-          skill={s.key}
-          closing={s.closing}
-          born={s.born}
-          index={i}
-          total={skills.length}
-          planetId={planetId}
-        />
-      ))}
+      {skills.map((s, i) => {
+        // Support both new & old shapes:
+        const skillObj =
+          s && typeof s === 'object' && ('moonLabel' in s || 'buttonLabel' in s || 'links' in s)
+            ? s
+            : { id: s?.key || String(s), buttonLabel: s?.key || String(s), moonLabel: s?.key || String(s) }
+
+        const key = skillObj.id || s?.key || i
+
+        return (
+          <SkillMoon
+            key={key}
+            skillObj={skillObj}
+            closing={s?.closing}
+            born={s?.born}
+            index={i}
+            total={skills.length}
+            planetId={planetId}
+            onSkillClick={onSkillClick}
+          />
+        )
+      })}
     </Suspense>
   </Canvas>
 )

@@ -1,17 +1,18 @@
 import React from 'react'
 import { Canvas } from '@react-three/fiber'
-import SkillMoon from './SkillMoon' // or keep SkillMoon in same file and export it
+import SkillMoon from './PlanetScene' // or keep SkillMoon in same file and export it
 
 const MoonOverlay = ({ skills }) => {
   return (
     <Canvas
+      className="moon-overlay-canvas"
       gl={{ alpha: true }}
       onCreated={({ gl }) => gl.setClearColor(0x000000, 0)} // transparent
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 3,            // ABOVE your PortfolioSection
-        pointerEvents: 'none' // clicks still go to skill buttons
+        pointerEvents: 'auto' // clicks still go to skill buttons
       }}
       camera={{ position: [0, 0, 6], fov: 45 }}
     >
