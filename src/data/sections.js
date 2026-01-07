@@ -11,7 +11,7 @@ const sections = [
   },
   {
   id: 'bachelor',
-  title: 'Bachelor of Engineering (B.E.) in Computer Science and Engineering',
+  title: 'B.E. in Computer Science (Undergraduate)',
   subtitle: 'Osmania University | GPA: 7.43/10 <br>August 2018 - May 2022 | Hyderabad, India',
   planetId: 1,
   dnaContent: `These four years were where things really started to click for me. I wasn’t just learning how to code, I was learning how to sit with problems and work through them until something made sense. A lot of trial, a lot of small builds, and plenty of things breaking before they worked. Outside academics, I was involved with Matrusri Campus Connect, the student chapter responsible for organizing and hosting the college’s cultural, festive, and annual events. I worked on event coordination and handled design and social media promotions. It was a good balance to the technical side of college life, working with people, deadlines, and real-world constraints alongside coursework.`,
@@ -83,7 +83,7 @@ const sections = [
   },
   {
     id: 'depaul',
-    title: 'Master of Science (M.S.) in Computer Science',
+    title: 'M.S. in Computer Science (Graduate)',
     subtitle: 'DePaul University | Current GPA: 3.87/4 <br>January 2024 - November 2025 | Chicago, IL, USA',
     planetId: 4,
     dnaContent: `I completed my Master’s degree in Computer Science at DePaul University in Chicago. Moving here meant adjusting to a new country, a new city, and a different way of living, all at once. I’ve always liked Apple’s ecosystem and iOS development, so I intentionally chose iOS-focused courses during the program. I enjoyed building apps, learning how the platform is structured, and spending time on details that affect how an app actually behaves on a device. That interest stayed consistent throughout the degree and showed up across multiple projects. Life outside classes mattered just as much. Cycling along the Lakefront Trail became routine. The gym and rec center were regular stops. Campus events were active and easy to walk into, and I tried to attend when I could. Over time, Chicago stopped feeling temporary and started feeling familiar. I also worked on campus during this period, which added structure to my weeks. Balancing coursework, work, and everyday life in a new environment forced me to be deliberate with time and priorities. During the Master’s, I worked on several projects and held campus roles alongside academics, which are covered in the sections that follow.`,

@@ -146,6 +146,17 @@ const SkillMoon = ({
   const skillKey = skillObj?.id || skillObj?.buttonLabel
   const skillData = skillSections[skillKey]
 
+  const desc = skillData?.description || ''
+  const len = desc.length
+
+  // crude but effective “fit” scale — tweak thresholds if you want
+  const scale =
+    len > 160 ? 0.58 :
+    len > 120 ? 0.66 :
+    len > 90  ? 0.74 :
+    len > 60  ? 0.82 :
+                0.9
+
   return (
     <group ref={ref} scale={[0, 0, 0]}>
       <mesh
@@ -167,29 +178,38 @@ const SkillMoon = ({
       </mesh>
 
       <Html
-        portal={false}
-        ref={htmlRef}
-        center
-        distanceFactor={10}
-        wrapperClass="skill-moon-ui"
-        style={{
-          fontSize: '9px',
-          color: '#e8ecff',
-          opacity: 0.9,
-          pointerEvents: 'auto',
-          width: '150px',
-          maxWidth: '10000px',
-          textAlign: 'center',
-          cursor: skillData?.link ? 'pointer' : 'default',
-          userSelect: 'none',
-        }}
-      >
-        <div className="skill-moon-ui">
-          <div style={{ marginBottom: '6px' }}>
-            {skillData.description}
-          </div>
-        </div>
-      </Html>
+  portal={false}
+  ref={htmlRef}
+  center
+  distanceFactor={10}
+  wrapperClass="skill-moon-ui"
+  style={{
+    pointerEvents: 'auto',
+    width: '180px',          // give it more room than 150
+    maxWidth: '180px',
+    textAlign: 'center',
+    cursor: skillData?.link ? 'pointer' : 'default',
+    userSelect: 'none',
+  }}
+>
+  <div
+    style={{
+      fontFamily: '"Source Serif 4","PT Serif",Georgia,serif',
+      fontSize: '14px',              // crisp base
+      lineHeight: 1.2,
+      letterSpacing: '0.01em',
+      color: 'rgba(235,235,235,0.92)',
+      textShadow: '0 1px 2px rgba(0,0,0,0.45)',
+
+      transform: `scale(${scale})`,
+      transformOrigin: 'center',
+      willChange: 'transform',
+    }}
+  >
+    {skillData?.description}
+  </div>
+</Html>
+
     </group>
   )
 }

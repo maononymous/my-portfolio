@@ -136,17 +136,20 @@
 /* ================= LABEL ================= */
 
 .bubble-menu-items .pill-link .pill-label {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  display: block;
 
   white-space: normal;
-  overflow: hidden;
+  overflow: visible;
+
   max-width: 100%;
   padding: 0 14px;
   text-align: center;
 
   line-height: 1.15;
+
+  /* prevents super long words/URLs from blowing out the pill */
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* ================= MOBILE ================= */
@@ -180,6 +183,7 @@
     min-height: 68px;
     font-size: 18px;
     --s: 1 !important;
+    padding: 12px 0;
   }
 
   .bubble-menu-items .pill-link:hover {

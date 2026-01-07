@@ -89,6 +89,11 @@ const PortfolioSection = React.forwardRef(({ section, mode, dnaPhase = 'revealed
     GLASS_BOTTOM_PAD +
     GLASS_PAD * 2
 
+  const textColor =
+  mode === 'DNA'
+    ? '#262626'      // dark for bright glass
+    : 'rgba(220, 220, 220, 0.85)' // light for dark planet
+
   return (
     <motion.section
       className={`portfolio-section ${mode === 'DNA' ? 'mode-dna' : 'mode-planet'}`}
@@ -152,7 +157,7 @@ const PortfolioSection = React.forwardRef(({ section, mode, dnaPhase = 'revealed
       >
         {/* Glass card */}
         <div
-          className="section-glass"
+          className={`section-glass ${mode === 'DNA' ? 'section-glass--dna' : 'section-glass--planet'}`}
           style={{
             position: 'absolute',
             top: GLASS_TOP,
@@ -165,7 +170,7 @@ const PortfolioSection = React.forwardRef(({ section, mode, dnaPhase = 'revealed
 
         {/* Title */}
         <div style={{ position: 'absolute', top: POSITIONS.title, left: 0, right: 0 }}>
-          <h2 ref={titleRef} style={{ margin: 0, lineHeight: 1.1 }}>
+          <h2 ref={titleRef} style={{ margin: 0, lineHeight: 1.1, color: textColor, textShadow: '0 1px 2px rgba(0,0,0,0.35)' }}>
             {section.title}
           </h2>
         </div>
@@ -174,7 +179,7 @@ const PortfolioSection = React.forwardRef(({ section, mode, dnaPhase = 'revealed
         <div style={{ position: 'absolute', top: POSITIONS.subtitle, left: 0, right: 0 }}>
           <h4
             ref={subtitleRef}
-            style={{ margin: 0, fontWeight: 400, lineHeight: 1.25 }}
+            style={{ margin: 0, fontWeight: 400, lineHeight: 1.25, color: textColor, textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
             dangerouslySetInnerHTML={{ __html: section.subtitle }}
           />
         </div>
@@ -182,11 +187,11 @@ const PortfolioSection = React.forwardRef(({ section, mode, dnaPhase = 'revealed
         {/* Body */}
         <div style={{ position: 'absolute', top: POSITIONS.body, left: 0, right: 0 }}>
           {mode === 'DNA' ? (
-            <p style={{ margin: 0, lineHeight: 1.6 }}>{section.dnaContent}</p>
+            <p style={{ margin: 0, lineHeight: 1.6, color: 'rgba(20, 20, 20, 0.9)', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>{section.dnaContent}</p>
           ) : (
             <div
               className="planet-text"
-              style={{ lineHeight: 1.6 }}
+              style={{ lineHeight: 1.6, color: 'rgba(215, 215, 215, 0.82)', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
               dangerouslySetInnerHTML={{ __html: section.planetContent }}
             />
           )}
