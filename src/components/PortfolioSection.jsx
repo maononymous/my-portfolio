@@ -18,7 +18,7 @@ const PortfolioSection = React.forwardRef(({ section, mode, dnaPhase = 'revealed
   // --- glass padding ---
   const GLASS_PAD = 16
   const GLASS_TOP_PAD = 16
-  const GLASS_BOTTOM_PAD = 18
+  const GLASS_BOTTOM_PAD = -64
 
   // Measure refs (invisible for content height parity)
   const measureDNARef = useRef(null)
