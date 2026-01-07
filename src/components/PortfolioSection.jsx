@@ -8,7 +8,7 @@ const PortfolioSection = React.forwardRef(({ section, mode, dnaPhase = 'revealed
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false
 
   const POSITIONS = isMobile
-    ? { title: 180, subtitle: 220, body: 250 }
+    ? { title: 180, subtitle: 250, body: 280 }
     : { title: 380, subtitle: 420, body: 470 }
 
   // --- glass padding ---
