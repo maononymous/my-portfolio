@@ -91,6 +91,7 @@ const PortfolioSection = React.forwardRef(({ section, mode, dnaPhase = 'revealed
 
   return (
     <motion.section
+      className={`portfolio-section ${mode === 'DNA' ? 'mode-dna' : 'mode-planet'}`}
       ref={ref}
       id={section.id}
       initial={mode === 'DNA' ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}

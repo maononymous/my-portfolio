@@ -1,3 +1,4 @@
+// PortfolioTextOverlay.jsx
 import React from 'react'
 
 export default function PortfolioTextOverlay({
@@ -9,9 +10,8 @@ export default function PortfolioTextOverlay({
 
   // clamp reveal
   const r = Math.min(1, Math.max(0, reveal))
-  const leftPct = `${r * 100}%`
 
-  // If you want DNA on right / Planet on left, swap these masks.
+  // DNA visible on left side, Planet visible on right side
   const dnaMask = `inset(0 ${100 - r * 100}% 0 0)`
   const planetMask = `inset(0 0 0 ${r * 100}%)`
 
@@ -24,7 +24,7 @@ export default function PortfolioTextOverlay({
         pointerEvents: 'none',
       }}
     >
-      {/* text frame centered horizontally */}
+      {/* centered frame */}
       <div
         style={{
           position: 'absolute',
@@ -35,28 +35,25 @@ export default function PortfolioTextOverlay({
           height: '100%',
         }}
       >
-        {/* Optional: show slider split line position (debug) */}
-        {/* <div style={{ position:'absolute', top:0, bottom:0, left:leftPct, width:1, background:'rgba(255,255,255,0.15)' }} /> */}
-
-        {/* TITLE band */}
+        {/* TITLE */}
         <Band top="18vh">
-          <Layer clipPath={dnaMask} opacity={1}>
+          <Layer clipPath={dnaMask} className="portfolio-section mode-dna">
             <h2 style={styles.h2}>{section.title}</h2>
           </Layer>
-          <Layer clipPath={planetMask} opacity={1}>
+          <Layer clipPath={planetMask} className="portfolio-section mode-planet">
             <h2 style={styles.h2}>{section.title}</h2>
           </Layer>
         </Band>
 
-        {/* SUBTITLE band */}
+        {/* SUBTITLE */}
         <Band top="26vh">
-          <Layer clipPath={dnaMask} opacity={1}>
+          <Layer clipPath={dnaMask} className="portfolio-section mode-dna">
             <h4
               style={styles.h4}
               dangerouslySetInnerHTML={{ __html: section.subtitle }}
             />
           </Layer>
-          <Layer clipPath={planetMask} opacity={1}>
+          <Layer clipPath={planetMask} className="portfolio-section mode-planet">
             <h4
               style={styles.h4}
               dangerouslySetInnerHTML={{ __html: section.subtitle }}
@@ -64,12 +61,12 @@ export default function PortfolioTextOverlay({
           </Layer>
         </Band>
 
-        {/* BODY band */}
+        {/* BODY */}
         <Band top="34vh">
-          <Layer clipPath={dnaMask} opacity={1}>
+          <Layer clipPath={dnaMask} className="portfolio-section mode-dna">
             <p style={styles.p}>{section.dnaContent}</p>
           </Layer>
-          <Layer clipPath={planetMask} opacity={1}>
+          <Layer clipPath={planetMask} className="portfolio-section mode-planet">
             <div
               className="planet-text"
               style={styles.p}
@@ -97,15 +94,15 @@ function Band({ top, children }) {
   )
 }
 
-function Layer({ clipPath, opacity, children }) {
+function Layer({ clipPath, className, children }) {
   return (
     <div
+      className={className}
       style={{
         position: 'absolute',
         inset: 0,
         clipPath,
         WebkitClipPath: clipPath,
-        opacity,
         pointerEvents: 'none',
       }}
     >

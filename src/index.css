@@ -204,13 +204,15 @@ body,
 .navOrb--planet {
   background-size: cover;
   background-position: center;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset, 0 10px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
 .navOrb--dna {
   color: rgba(214, 207, 196, 0.95);
   background: rgba(11, 28, 31, 0.55);
-  box-shadow: 0 0 0 1px rgba(214, 207, 196, 0.12) inset, 0 10px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 1px rgba(214, 207, 196, 0.12) inset,
+    0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
 .navOrb__ring {
@@ -263,10 +265,11 @@ body,
   object-fit: contain;
   pointer-events: none;
   user-select: none;
-  filter: invert(1) brightness(2) contrast(1.1) drop-shadow(0 0 6px rgba(255, 255, 255, 0.25));
+  filter: invert(1) brightness(2) contrast(1.1)
+    drop-shadow(0 0 6px rgba(255, 255, 255, 0.25));
 }
 
-/* Desktop menu button: icon only (still positioned top-right via .navOrb desktop rule above) */
+/* Desktop menu button */
 .navOrb--desktop {
   background: transparent !important;
   background-image: none !important;
@@ -281,186 +284,6 @@ body,
   display: none !important;
 }
 
-/* ---------- Section menu overlay ---------- */
-.sectionMenuOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1190;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: calc(var(--safe-top) + 12px) 12px 12px calc(var(--safe-left) + 12px);
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.sectionMenuPanel {
-  width: min(360px, calc(100vw - 24px));
-  max-height: calc(100svh - (var(--safe-top) + 24px));
-  overflow: auto;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.sectionMenuOverlay.isPlanet .sectionMenuPanel {
-  background: rgba(10, 10, 10, 0.88);
-}
-
-.sectionMenuOverlay.isDNA .sectionMenuPanel {
-  background: rgba(11, 28, 31, 0.88);
-  border-color: rgba(214, 207, 196, 0.16);
-}
-
-.sectionMenuHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.sectionMenuTitle {
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 700;
-  letter-spacing: 0.2px;
-}
-
-.sectionMenuClose {
-  border: 0;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 18px;
-  padding: 8px 10px;
-  border-radius: 10px;
-}
-
-.sectionMenuClose:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.sectionMenuList {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-  gap: 8px;
-}
-
-.sectionMenuItem {
-  text-align: left;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 12px;
-  padding: 10px 12px;
-  cursor: pointer;
-}
-
-.sectionMenuItem:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.sectionMenuItem.active {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.sectionMenuItemTitle {
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 650;
-}
-
-.sectionMenuItemSub {
-  margin-top: 3px;
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 0.9rem;
-}
-
-/* ===== Bubble Menu ===== */
-
-.bubbleMenuOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1200;
-  background: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.bubbleMenuOverlay--dna {
-  background: rgba(0, 10, 12, 0.28);
-}
-
-.bubbleMenuOverlay--planet {
-  background: rgba(0, 0, 0, 0.25);
-}
-
-/* Anchor at top-left (same zone as your nav orb) */
-.bubbleMenuAnchor {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 1300;
-  width: 1px;
-  height: 1px;
-  pointer-events: none; /* children will turn it on */
-}
-
-/* This is the "origin" point */
-.bubbleMenuList {
-  position: absolute;
-  left: 0;
-  top: 0;
-  pointer-events: none;
-}
-
-.bubbleMenuItem {
-  position: absolute;
-  left: 0;
-  top: 0;
-  pointer-events: auto;
-
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-
-  display: grid;
-  place-items: center;
-
-  color: rgba(255, 255, 255, 0.92);
-  cursor: pointer;
-
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.bubbleMenuItem:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.09);
-}
-
-.bubbleMenuItem.isActive {
-  border-color: rgba(255, 255, 255, 0.42);
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.bubbleMenuItem__label {
-  font-weight: 650;
-  font-size: 12px;
-  letter-spacing: 0.06em;
-}
-
-/* mobile tuning */
-@media (max-width: 768px) {
-  .bubbleMenuAnchor {
-    top: 0.85rem;
-    left: 0.85rem;
-  }
-}
-
 /* ✅ FORCE mobile = top-left */
 @media (max-width: 899px) {
   .navOrb {
@@ -470,7 +293,7 @@ body,
   }
 }
 
-/* ✅ Desktop-only = top-right (only for desktop button class) */
+/* ✅ Desktop-only = top-right */
 @media (min-width: 900px) {
   .navOrb.navOrb--desktop {
     left: auto !important;
@@ -479,75 +302,15 @@ body,
   }
 }
 
-/* Liquid glass background for the whole Planet section text block */
-.planet-text.liquid-glass {
-  position: relative;
-
-  padding: 22px 24px;
-  border-radius: 18px;
-
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.14),
-    rgba(255, 255, 255, 0.04)
-  );
-  border: 1px solid rgba(255, 255, 255, 0.18);
-
-  box-shadow:
-    0 22px 55px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-
-  line-height: 1.6;
-  color: #e8ecff;
-}
-
-/* highlight sheen */
-.planet-text.liquid-glass::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-
-  background: radial-gradient(
-    180px 120px at 18% 12%,
-    rgba(255, 255, 255, 0.22),
-    rgba(255, 255, 255, 0) 60%
-  );
-}
-
-/* subtle noise texture */
-.planet-text.liquid-glass::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-
-  opacity: 0.06;
-  mix-blend-mode: overlay;
-
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
-}
-
-/* optional: make skill pills match the glass */
-.planet-text.liquid-glass .skill {
-  background: rgba(255, 255, 255, 0.10);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  padding: 2px 8px;
-  cursor: pointer;
-}
+/* =======================
+   LIQUID GLASS (wrapper)
+   This is what you wanted
+======================= */
 
 .section-glass {
   position: relative;
 
-  /* spacing so text doesn’t touch edges */
   padding: 28px 28px 36px;
-
   border-radius: 24px;
 
   background: linear-gradient(
@@ -583,7 +346,7 @@ body,
   );
 }
 
-/* subtle noise = premium glass */
+/* subtle noise */
 .section-glass::after {
   content: "";
   position: absolute;
@@ -595,4 +358,94 @@ body,
   mix-blend-mode: overlay;
 
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
+}
+
+/* (optional) keep this if you ALSO want body-only glass */
+.planet-text.liquid-glass {
+  position: relative;
+
+  padding: 22px 24px;
+  border-radius: 18px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.04)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.18);
+
+  box-shadow:
+    0 22px 55px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+
+  line-height: 1.6;
+  color: #e8ecff;
+}
+
+.planet-text.liquid-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+
+  background: radial-gradient(
+    180px 120px at 18% 12%,
+    rgba(255, 255, 255, 0.22),
+    rgba(255, 255, 255, 0) 60%
+  );
+}
+
+.planet-text.liquid-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
+}
+
+/* =======================
+   FONT SWITCHING
+   (This affects your overlay)
+======================= */
+
+.portfolio-section {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* DNA — human */
+.portfolio-section.mode-dna {
+  font-family:
+    "Charter",
+    "Iowan Old Style",
+    "Palatino Linotype",
+    Palatino,
+    serif;
+  letter-spacing: 0.15px;
+}
+
+/* Planet — precise */
+.portfolio-section.mode-planet {
+  font-family:
+    "Source Serif 4",
+    "PT Serif",
+    Georgia,
+    serif;
+  letter-spacing: 0px;
+}
+
+/* Ensure headers inherit correctly */
+.portfolio-section h2,
+.portfolio-section h4,
+.portfolio-section p {
+  font-family: inherit;
 }
